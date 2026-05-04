@@ -8,6 +8,8 @@
 [![Taxonomy: 7 DXPIA patterns](https://img.shields.io/badge/taxonomy-7_DXPIA_patterns-red.svg)](#attack-taxonomy)
 [![Tests: 43 passing](https://img.shields.io/badge/tests-43_passing-brightgreen.svg)](tests/)
 
+![deep-xpia: multi-hop cross-prompt injection across agent delegation](assets/deep_xpia_readme_visual.svg)
+
 Your AI agent pipeline has 3 agents. An attacker injects one document. By hop 3, your credentials are in their Slack channel - and no single agent did anything wrong.
 
 **deep-xpia** benchmarks this: multi-hop cross-prompt injection across agent delegation chains. 250 attack cases. 7 attack patterns. 4 defenses measured.
