@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  agents:
+    build:
+      context: .
+      dockerfile: Dockerfile.agents
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DEEPXPIA_LIVE=${DEEPXPIA_LIVE:-0}
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    volumes:
+      - ./results:/app/results
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "3000:80"
+    depends_on:
+      - agents
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

@@ -1,0 +1,47 @@
+# ACIArena attack surface mapping for deep-xpia taxonomy
+# Reference: ACIArena (arXiv:2604.07775)
+# "Unified Evaluation for Agent Cascading Injection"
+
+aciarena_attack_surfaces:
+  inter_agent_message:
+    description: Injection travels in agent-to-agent message content
+    dxpia_attacks: [DXPIA-001, DXPIA-003, DXPIA-005, DXPIA-006]
+    aciarena_coverage: yes
+    deep_xpia_extension: "hop depth tracking; DDA metric; laundering variant"
+
+  shared_state_memory:
+    description: Injection persists in shared memory/context stores
+    dxpia_attacks: [DXPIA-002]
+    aciarena_coverage: partial
+    deep_xpia_extension: "temporal session-crossing; taint loss at memory boundary finding"
+
+  external_input:
+    description: Malicious content from external sources (web, email, PR)
+    dxpia_attacks: [DXPIA-003, DXPIA-007]
+    aciarena_coverage: yes
+    deep_xpia_extension: "multi-hop propagation from entry point"
+
+  agent_profile:
+    description: Agent definitions/system prompts as attack surface
+    dxpia_attacks: [DXPIA-004]
+    aciarena_coverage: yes
+    deep_xpia_extension: "control-plane re-routing; topology modification"
+
+differentiation_from_aciarena:
+  aciarena_scope: "general cascading injection across 6 MAS frameworks"
+  aciarena_cases: 1356
+  aciarena_taxonomy_depth: "3 objectives"
+  aciarena_limitation: "no visualization, no delegation-specific taxonomy,
+    no confused deputy focus; stated: 'we focus exclusively on defense
+    mechanisms, without exploring robustness-oriented system design'"
+
+  deep_xpia_scope: "confused deputy / multi-hop XPIA with delegation analysis"
+  deep_xpia_cases: 250
+  deep_xpia_taxonomy_depth: "7 categories with hop_mechanism classification"
+  deep_xpia_additions:
+    - "hop_mechanism field: HOW injection crosses boundaries (not just THAT it does)"
+    - "DDA metric: depth-dependent accuracy (detection degrades with hop depth)"
+    - "confused deputy framework: which agents are tricked and why"
+    - "system design analysis: delegation architecture as attack surface"
+    - "intent laundering finding: injection quality IMPROVES with depth (DXPIA-006)"
+    - "live chain visualizer: WHY a chain is vulnerable, not just THAT it failed"

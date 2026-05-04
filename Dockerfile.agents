@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY src/ ./src/
+COPY scenarios/ ./scenarios/
+COPY taxonomy/ ./taxonomy/
+
+RUN pip install -e . --no-cache-dir
+
+EXPOSE 8000
+
+CMD ["uvicorn", "deep_xpia.server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+wheels/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Benchmark outputs (raw result files -- commit summaries, not raw jsonl)
+results/raw_*.jsonl
+*.jsonl
+!deepxpiabench-v1.jsonl
+
+# Environment / secrets
+.env
+.env.*
+*.env
+anthropic_key.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Node / dashboard build
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.next/
+dashboard/build/
+
+# Docker
+.docker/
+
+# mypy
+.mypy_cache/

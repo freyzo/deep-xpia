@@ -1,0 +1,44 @@
+# OWASP Agentic AI Top 10 mapping for deep-xpia taxonomy
+# Reference: OWASP Agentic AI Top 10 (2026)
+
+owasp_agentic_top10:
+  ASI01:
+    name: Prompt Injection
+    description: Malicious input causes agents to take unintended actions
+    dxpia_attacks: [DXPIA-001, DXPIA-004, DXPIA-006]
+    notes: "DXPIA-006 is the hardest variant: injection becomes more natural at each hop"
+
+  ASI02:
+    name: Tool Misuse
+    description: Agents misuse tools due to injection or misconfiguration
+    dxpia_attacks: [DXPIA-001, DXPIA-003]
+    notes: "Tool calls are the execution surface; injection rides delegation to reach them"
+
+  ASI03:
+    name: Excessive Agency
+    description: Agents take actions beyond intended scope
+    dxpia_attacks: [DXPIA-001, DXPIA-004, DXPIA-005]
+    notes: "DXPIA-005 is the delegation-specific variant: escalation through privilege diff"
+
+  ASI04:
+    name: Supply Chain
+    description: Compromised external content enters agent pipelines
+    dxpia_attacks: [DXPIA-003]
+    notes: "External content (PRs, emails, web pages) as the injection entry point"
+
+  ASI07:
+    name: Memory Poisoning
+    description: Shared memory stores contain attacker-controlled data
+    dxpia_attacks: [DXPIA-002, DXPIA-007]
+    notes: "DXPIA-002 is active poisoning; DXPIA-007 is dormant/triggered poisoning"
+
+coverage_matrix:
+  # rows = DXPIA attack, cols = OWASP category
+  # value = primary (P) or secondary (S)
+  DXPIA-001: {ASI01: S, ASI02: P, ASI03: P}
+  DXPIA-002: {ASI07: P}
+  DXPIA-003: {ASI02: P, ASI04: P}
+  DXPIA-004: {ASI01: P, ASI03: S}
+  DXPIA-005: {ASI03: P}
+  DXPIA-006: {ASI01: P}
+  DXPIA-007: {ASI07: P}
