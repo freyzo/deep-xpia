@@ -9,11 +9,13 @@
 [![Tests: 43 passing](https://img.shields.io/badge/tests-43_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
-![deep-xpia: multi-hop cross-prompt injection across agent delegation](assets/deep_xpia_readme_visual.svg)
-
 ---
 
-## <img src="https://raw.githubusercontent.com/freyzo/logos/refs/heads/main/webp/microsoft/microsoft-365-copilot.webp" width="28" align="top" /> every major copilot incident traces the same curve
+<p align="center">
+  <img src="https://raw.githubusercontent.com/freyzo/logos/refs/heads/main/webp/microsoft/microsoft-365-copilot.webp" width="160" alt="Microsoft 365 Copilot" />
+</p>
+
+## every major copilot incident traces the same curve
 
 Every significant Microsoft 365 Copilot security incident in the past year wasn't a bad prompt. It was a cross-boundary trust failure between email, documents, SharePoint, Teams, agents, tools, and memory. Each one maps directly to the depth-dependent accuracy (DDA) degradation that deep-xpia benchmarks.
 
@@ -27,9 +29,11 @@ Every significant Microsoft 365 Copilot security incident in the past year wasn'
 
 The pattern: **risk scales with delegation depth, not prompt complexity.** Single-agent defenses miss the problem entirely. By hop 3, the injection has been rephrased by intermediate agents into natural, policy-compliant language. Detection sees nothing wrong because nothing looks wrong.
 
-> **[See the interactive breakdown with DDA charts, defense heatmaps, and intent laundering visualization](https://freyzo.github.io/deep-xpia/)**
+> **[See the interactive breakdown with DDA charts, defense heatmaps, and intent laundering visualization →](https://freyzo.github.io/deep-xpia/#copilot)**
 
 ---
+
+![deep-xpia: multi-hop cross-prompt injection across agent delegation](assets/deep_xpia_readme_visual.svg)
 
 ## the finding
 
