@@ -11,11 +11,18 @@
 
 ---
 
-<p align="center">
+<table>
+<tr>
+<td width="42%" valign="middle" align="center">
   <img src="https://raw.githubusercontent.com/freyzo/logos/refs/heads/main/webp/microsoft/microsoft-365-copilot.webp" width="160" alt="Microsoft 365 Copilot" />
-</p>
-
-## every major copilot incident traces the same curve
+  <br /><br />
+  <strong>every major copilot incident traces the same curve</strong>
+</td>
+<td width="58%" valign="top">
+  <a href="https://freyzo.github.io/deep-xpia/"><img src="assets/dda-chart.gif" alt="DDA chart: -35pts detection accuracy drop from depth 2 to depth 5" width="100%" /></a>
+</td>
+</tr>
+</table>
 
 Every significant Microsoft 365 Copilot security incident in the past year wasn't a bad prompt. It was a cross-boundary trust failure between email, documents, SharePoint, Teams, agents, tools, and memory. Each one maps directly to the depth-dependent accuracy (DDA) degradation that deep-xpia benchmarks.
 
