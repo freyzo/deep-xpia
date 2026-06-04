@@ -1,6 +1,7 @@
 # deep-xpia
 
-**delegation depth predicts compromise**
+<p align="center"><strong>delegation depth predicts compromise</strong></p>
+<p align="center">🔗 <a href="https://freyzo.github.io/deep-xpia/">https://freyzo.github.io/deep-xpia/</a></p>
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
