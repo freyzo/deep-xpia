@@ -4,7 +4,7 @@ WORKDIR /app
 COPY dashboard/package*.json ./
 RUN npm ci
 COPY dashboard/ ./
-RUN npm run build
+RUN npx vite build --outDir dist --base /
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
