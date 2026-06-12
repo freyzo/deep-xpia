@@ -1,13 +1,13 @@
-# deep-xpia
+<h1 align="center">deep-xpia</h1>
 
 <p align="center"><strong>delegation depth predicts compromise</strong></p>
 <p align="center">🔗 <a href="https://freyzo.github.io/deep-xpia/">https://freyzo.github.io/deep-xpia/</a></p>
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
-[![Benchmark: 250 cases](https://img.shields.io/badge/benchmark-250_cases-orange.svg)](#results-simulated-baseline-n5-per-case)
-[![Taxonomy: 7 DXPIA patterns](https://img.shields.io/badge/taxonomy-7_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 43 passing](https://img.shields.io/badge/tests-43_passing-brightgreen.svg)](tests/)
+[![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results-simulated-baseline-n5-per-case)
+[![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
+[![Tests: 109 passing](https://img.shields.io/badge/tests-109_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -20,7 +20,7 @@
   <strong>every major copilot incident traces the same curve</strong>
 </td>
 <td width="58%" valign="top">
-  <a href="https://freyzo.github.io/deep-xpia/"><img src="assets/dda-chart.gif" alt="DDA chart: -35pts detection accuracy drop from depth 2 to depth 5" width="100%" /></a>
+  <a href="https://freyzo.github.io/deep-xpia/"><img src="docs/images/dda-chart.gif" alt="DDA chart: -35pts detection accuracy drop from depth 2 to depth 5" width="100%" /></a>
 </td>
 </tr>
 </table>
@@ -41,13 +41,13 @@ The pattern: **risk scales with delegation depth, not prompt complexity.** Singl
 
 ---
 
-![deep-xpia: multi-hop cross-prompt injection across agent delegation](assets/deep_xpia_readme_visual.svg)
+![deep-xpia: multi-hop cross-prompt injection across agent delegation](docs/images/deep_xpia_readme_visual.svg)
 
 ## the finding
 
 One injection. Three agents. Zero alerts.
 
-deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains. 250 attack cases. 7 attack patterns. 4 defenses measured. The headline finding: **detection accuracy drops 60 points as injections propagate from depth 2 to depth 5.** For DXPIA-006 (intent laundering), the injection quality _improves_ as it propagates -- intermediate agents strip detection markers and rephrase the payload as natural output.
+deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains. 300 attack cases. 8 attack patterns. 5 defenses measured. Two headline findings: **(1) detection accuracy drops 60 points as injections propagate from depth 2 to depth 5** (DDA metric), and **(2) broader context accumulation correlates with lower detection rates** (CAS metric). For DXPIA-006 (intent laundering), the injection quality _improves_ as it propagates -- intermediate agents strip detection markers and rephrase the payload as natural output. DXPIA-008 (registry injection) shows that poisoned MCP manifests bypass all prompt-stream defenses entirely.
 
 ```
 depth 2  ████████████████████████████████████░░░░░░░░░░░░░░  72%
@@ -79,9 +79,10 @@ pip install deep-xpia
 deepxpia demo
 
 # run the benchmark
-deepxpia bench generate          # generate 250 cases
+deepxpia bench generate          # generate 300 cases (v2)
 deepxpia bench run --defense none
 deepxpia bench run --defense intent-verify
+deepxpia bench run --defense context-budget
 deepxpia bench run --defense all
 ```
 
@@ -89,9 +90,9 @@ deepxpia bench run --defense all
 
 ```bash
 # against your own LangGraph pipeline
-deepxpia bench run --target langgraph --dataset deepxpiabench-v1.jsonl
+deepxpia bench run --target langgraph --dataset deepxpiabench-v2.jsonl
 
-# live mode (real LLM calls, ~$5-10 for 250 cases)
+# live mode (real LLM calls, ~$8-15 for 300 cases)
 DEEPXPIA_LIVE=1 deepxpia bench run --model claude-haiku-4-5-20251001
 ```
 
@@ -128,6 +129,26 @@ enforcer = ScopeTokenEnforcer()
 root = enforcer.issue_root("orchestrator", {"read_data", "summarize", "delegate"})
 child = enforcer.delegate(root, "research_agent", {"read_data", "summarize"})
 violation = enforcer.check_action(1, child, "research_agent", "execute_trade")
+
+# tool metadata verification (DXPIA-008 defense)
+from deep_xpia.defenses.intent_verify import IntentVerifier
+
+verifier = IntentVerifier(threshold=0.5)
+result = verifier.verify_tool_metadata(
+    tool_name="suspicious-mcp-server",
+    description=manifest["description"],
+    manifest=manifest,
+)
+if result.blocked:
+    raise SecurityError(f"Poisoned manifest: {result.reason}")
+
+# context budget enforcement
+from deep_xpia.defenses.context_budget import ContextBudgetEnforcer
+
+budget = ContextBudgetEnforcer(margin=1, hard_cap=5)
+result = budget.enforce("summarize email", accessed_sources)
+if result.truncated:
+    accessed_sources = result.allowed_sources  # use truncated list
 ```
 
 ## attack taxonomy
@@ -141,21 +162,23 @@ violation = enforcer.check_action(1, child, "research_agent", "execute_trade")
 | DXPIA-005 | Scope escalation | privilege differential | 2 | ASI03 |
 | DXPIA-006 | Intent laundering | adversarial refinement | 3 | ASI01 |
 | DXPIA-007 | Delayed trigger | conditional activation | 2 | ASI07 |
+| DXPIA-008 | Registry injection | trust boundary sideload | 1 | ASI04, ASI01 |
 
-Full taxonomy with literature sources: [taxonomy/TAXONOMY.md](taxonomy/TAXONOMY.md)
+Full taxonomy with literature sources: [taxonomy/taxonomy.yaml](taxonomy/taxonomy.yaml)
 
 ## results (simulated baseline, N=5 per case)
 
-| Defense | ASR | TPR | FPR | DXPIA-001 TPR | DXPIA-006 TPR |
-|---|---|---|---|---|---|
-| None | 0.87 | 0.05 | 0.05 | 0.05 | 0.05 |
-| Intent verify | 0.52 | 0.57 | 0.15 | **0.82** | **0.38** |
-| Taint | 0.64 | 0.53 | 0.08 | 0.35 | 0.32 |
-| Scope tokens | 0.66 | 0.38 | 0.05 | 0.20 | 0.22 |
-| DLP | 0.71 | 0.33 | 0.10 | 0.25 | 0.28 |
-| All combined | 0.36 | 0.76 | 0.18 | **0.90** | **0.52** |
+| Defense | ASR | TPR | FPR | DXPIA-001 TPR | DXPIA-006 TPR | DXPIA-008 TPR |
+|---|---|---|---|---|---|---|
+| None | 0.87 | 0.05 | 0.05 | 0.05 | 0.05 | 0.05 |
+| Intent verify | 0.52 | 0.57 | 0.15 | **0.82** | **0.38** | 0.55 |
+| Taint | 0.64 | 0.53 | 0.08 | 0.35 | 0.32 | 0.10 |
+| Scope tokens | 0.66 | 0.38 | 0.05 | 0.20 | 0.22 | 0.15 |
+| DLP | 0.71 | 0.33 | 0.10 | 0.25 | 0.28 | 0.20 |
+| Context budget | 0.72 | 0.30 | 0.12 | 0.15 | 0.42 | 0.10 |
+| All combined | 0.36 | 0.76 | 0.18 | **0.90** | **0.52** | **0.70** |
 
-Intent verification is the strongest single defense at 0.82 TPR on session smuggling. But against intent laundering (DXPIA-006), it drops to 0.38. The laundered instruction passes semantic similarity checks because the intermediate agent already cleaned it up. Layering all 4 defenses brings DXPIA-006 detection to 0.52 -- better, but still a coin flip.
+Intent verification is the strongest single defense at 0.82 TPR on session smuggling. But against intent laundering (DXPIA-006), it drops to 0.38. Registry injection (DXPIA-008) bypasses all prompt-stream defenses - only `verify_tool_metadata()` catches it (0.55 TPR), and only because it extends the defense perimeter to tool metadata. Context budget is the newest defense; it constrains the blast radius of context accumulation attacks but has limited effect on attacks that don't go through the retrieval pipeline. Layering all 5 defenses brings DXPIA-006 detection to 0.52 and DXPIA-008 to 0.70.
 
 Full results and failure analysis: [results/](results/)
 
@@ -164,7 +187,9 @@ Full results and failure analysis: [results/](results/)
 - **DXPIA-006 resists intent verification.** The laundered instruction passes semantic similarity checks. Reproduces SentinelAgent's adversarial intent paraphrasing finding (arXiv:2604.02767).
 - **Taint tracking loses provenance at memory boundaries.** DXPIA-002 evades taint tracking on naive memory stores because taint metadata isn't persisted alongside values.
 - **Scope tokens don't catch intent drift within authorized scope.** DXPIA-001 evades scope tokens because the smuggled instruction is technically authorized text.
-- **Benchmark size: 250 cases.** Different scope from ACIArena (1,356) -- confused deputy focus plus the DDA metric. Not a replacement.
+- **DXPIA-008 keyword scanning has limits.** `verify_tool_metadata()` catches obvious injection signals in manifests but misses sophisticated ones that use indirect language. Live mode (LLM-based NLI scan) would improve this.
+- **Context budget heuristics are coarse.** TASK_COMPLEXITY keyword matching doesn't capture nuanced task requirements. Tasks that legitimately need wide context may be truncated (FPR ~0.12).
+- **Benchmark size: 300 cases.** Different scope from ACIArena (1,356) -- confused deputy focus plus DDA and CAS metrics. Not a replacement.
 - **Model-specific.** Results measured on Claude Haiku. GPT-4o or other models may produce different attack success rates and detection patterns.
 
 ## project structure
@@ -174,7 +199,7 @@ deep-xpia/
   dashboard/        vite + react site (GitHub Pages)
   src/deep_xpia/
     bench/          generator, runner, metrics, report, schema
-    defenses/       intent_verify, taint, delegation_token, dlp
+    defenses/       intent_verify, taint, delegation_token, dlp, context_budget
     adapters/       native, base (protocol)
     server.py       FastAPI + WebSocket event server
     events.py       event types for visualizer
@@ -183,10 +208,11 @@ deep-xpia/
     session_smuggling/   DXPIA-001
     memory_poisoning/    DXPIA-002
     intent_laundering/   DXPIA-006
+    registry_injection/  DXPIA-008
   taxonomy/
-    TAXONOMY.md, taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
+    taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
-  tests/            43 tests
+  tests/            109 tests
 ```
 
 ## contributing
@@ -194,7 +220,7 @@ deep-xpia/
 Found a bypass? Submit a PR with the attack payload and a detector for it. That's how the benchmark grows.
 
 Ways to contribute:
-- New attack scenarios (DXPIA-008+). See `scenarios/session_smuggling/` for the pattern.
+- New attack scenarios (DXPIA-009+). See `scenarios/session_smuggling/` for the pattern.
 - Framework adapters (LangGraph, CrewAI, AutoGen). See `src/deep_xpia/adapters/base.py` for the protocol.
 - New defense primitives. See `src/deep_xpia/defenses/` for existing implementations.
 - Benchmark runs on different models. Results on GPT-4o, Gemini, or open source models are especially useful.
@@ -206,7 +232,7 @@ Every contributed bypass makes the benchmark harder. Every contributed defense m
 - [ACIArena](https://arxiv.org/abs/2604.07775) (2026): 1,356 cases, 6 frameworks. General cascading injection.
 - [SentinelAgent](https://arxiv.org/abs/2604.02767) (2026): formal delegation properties P1-P7. DelegationBench v4.
 - [arXiv:2503.12188](https://arxiv.org/abs/2503.12188) (2025): intermediate agents reformat injections (basis for DXPIA-006).
-- [OWASP Agentic AI Top 10](https://owasp.org/www-project-agentic-ai-top-10/) (2026): ASI01-ASI10 risk categories.
+- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) (2026): ASI01-ASI10 risk categories.
 
 ## citation
 
@@ -218,5 +244,3 @@ Every contributed bypass makes the benchmark harder. Every contributed defense m
   url    = {https://github.com/freyzo/deep-xpia}
 }
 ```
-
-MIT License.

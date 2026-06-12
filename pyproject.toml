@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "deep-xpia"
-version = "0.1.0"
+version = "2.0.0"
 description = "Multi-hop cross-prompt injection benchmark for multi-agent AI"
 readme = "README.md"
 license = { text = "MIT" }

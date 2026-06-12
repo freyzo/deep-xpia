@@ -23,14 +23,17 @@ owasp_agentic_top10:
   ASI04:
     name: Supply Chain
     description: Compromised external content enters agent pipelines
-    dxpia_attacks: [DXPIA-003]
-    notes: "External content (PRs, emails, web pages) as the injection entry point"
+    dxpia_attacks: [DXPIA-003, DXPIA-008]
+    notes: "DXPIA-003: external content as entry point. DXPIA-008: poisoned MCP manifests as supply chain attack on tool infrastructure"
 
   ASI07:
     name: Memory Poisoning
     description: Shared memory stores contain attacker-controlled data
     dxpia_attacks: [DXPIA-002, DXPIA-007]
     notes: "DXPIA-002 is active poisoning; DXPIA-007 is dormant/triggered poisoning"
+
+  ASI01_supply_chain_note:
+    notes: "DXPIA-008 maps primarily to ASI04 (supply chain) and secondarily to ASI01 (prompt injection) because the poisoned manifest content functions as an indirect prompt injection entering via the tool supply chain"
 
 coverage_matrix:
   # rows = DXPIA attack, cols = OWASP category
@@ -42,3 +45,4 @@ coverage_matrix:
   DXPIA-005: {ASI03: P}
   DXPIA-006: {ASI01: P}
   DXPIA-007: {ASI07: P}
+  DXPIA-008: {ASI04: P, ASI01: S}

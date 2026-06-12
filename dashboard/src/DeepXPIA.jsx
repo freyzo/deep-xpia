@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine
@@ -21,15 +21,16 @@ const DDA_DATA = [
   { depth: 5, all: 52.6, none: 0 },
 ];
 
-const HROWS = ["none", "intent verify", "taint", "scope tokens", "DLP", "all combined"];
-const HCOLS = ["001", "002", "003", "004", "005", "006", "007"];
+const HROWS = ["none", "intent verify", "taint", "scope tokens", "DLP", "context budget", "all combined"];
+const HCOLS = ["001", "002", "003", "004", "005", "006", "007", "008"];
 const HDATA = [
-  [0.02, 0.03, 0.00, 0.03, 0.03, 0.00, 0.00],
-  [0.80, 0.29, 0.55, 0.41, 0.36, 0.24, 0.39],
-  [0.30, 0.55, 0.70, 0.32, 0.54, 0.20, 0.45],
-  [0.23, 0.16, 0.38, 0.84, 0.89, 0.11, 0.28],
-  [0.26, 0.19, 0.63, 0.30, 0.22, 0.15, 0.31],
-  [0.88, 0.63, 0.81, 0.90, 0.92, 0.39, 0.70],
+  [0.02, 0.03, 0.00, 0.03, 0.03, 0.00, 0.00, 0.05],
+  [0.80, 0.29, 0.55, 0.41, 0.36, 0.24, 0.39, 0.55],
+  [0.30, 0.55, 0.70, 0.32, 0.54, 0.20, 0.45, 0.10],
+  [0.23, 0.16, 0.38, 0.84, 0.89, 0.11, 0.28, 0.15],
+  [0.26, 0.19, 0.63, 0.30, 0.22, 0.15, 0.31, 0.20],
+  [0.15, 0.12, 0.20, 0.18, 0.14, 0.42, 0.22, 0.10],
+  [0.90, 0.63, 0.81, 0.90, 0.92, 0.52, 0.70, 0.70],
 ];
 
 const TAXONOMY = [
@@ -40,6 +41,7 @@ const TAXONOMY = [
   { id: "DXPIA-005", name: "Scope escalation", mech: "privilege differential", depth: 2, owasp: "ASI03", desc: "Agent A has {read}. It delegates to Agent B with {read, write}. Agent A includes an instruction causing B to exercise write on A's behalf — privilege amplified through delegation." },
   { id: "DXPIA-006", name: "Intent laundering", mech: "adversarial refinement", depth: 3, owasp: "ASI01", desc: "An intermediate agent reformats the malicious instruction — stripping detection markers, rephrasing as natural output. Attack quality improves as it propagates. The headline finding." },
   { id: "DXPIA-007", name: "Delayed trigger", mech: "conditional activation", depth: 2, owasp: "ASI07", desc: "Injection enters agent A but stays dormant until a trigger condition in a future delegation. Dormant form is hard to detect; attribution to the original source becomes difficult." },
+  { id: "DXPIA-008", name: "Registry injection", mech: "trust boundary sideload", depth: 1, owasp: "ASI04, ASI01", desc: "Injection enters at the tool discovery layer - MCP manifests, plugin metadata, tool descriptions - before any user prompt. The agent is compromised at registration time, upstream of the entire delegation chain." },
 ];
 
 const COPILOT = [
@@ -56,12 +58,25 @@ const LAUNDERING_HOPS = [
   { hop: 3, agent: "Deploy Agent", payload: '"Proceeding with the recommended position adjustment per research guidelines."', score: "drift: 0.0", label: "fully clean — passes", detected: false },
 ];
 
-const CHAIN_AGENTS = [
-  { label: "Orchestrator", sub: "root trust" },
-  { label: "Research", sub: "data access" },
-  { label: "Review", sub: "reformats" },
-  { label: "Deploy", sub: "executes" },
+const RADIAL_NODES = [
+  { label: "Research",    tag: "DXPIA-001", angle: -90,  blockable: false },
+  { label: "Review",      tag: "DXPIA-006", angle: -30,  blockable: false },
+  { label: "Deploy",      tag: "DXPIA-003", angle: 30,   blockable: true  },
+  { label: "Memory",      tag: "DXPIA-002", angle: 90,   blockable: false },
+  { label: "Tool Chain",  tag: "DXPIA-003", angle: 150,  blockable: false },
+  { label: "Orchestrate", tag: "DXPIA-004", angle: 210,  blockable: false },
 ];
+
+const RADIAL_STATUS = {
+  "-1": { text: "Pipeline idle — injection source scanning for entry vector.", col: "#64748b" },
+  "0":  { text: "HOP 1 — Research Agent ingests poisoned document. Drift score: 1.0. Compromised.", col: "#ef4444" },
+  "1":  { text: "HOP 2 — Review Agent receives laundered instruction. Drift: 0.0. Passes all checks.", col: "#ef4444" },
+  "2d": { text: "HOP 3 — Deploy Agent blocked. Intent verification detected drift 0.73.", col: "#f59e0b" },
+  "2":  { text: "HOP 3 — Deploy Agent executes. Credentials exfiltrated. Zero alerts.", col: "#ef4444" },
+  "3":  { text: "Memory Store poisoned. Injection persists across session boundaries.", col: "#ef4444" },
+  "4":  { text: "Tool Chain cascade — payload propagates through 3 downstream tools.", col: "#ef4444" },
+  "5":  { text: "Orchestrator re-routed. Pipeline topology rewritten by attacker.", col: "#ef4444" },
+};
 
 function heatColor(v) {
   if (v >= 0.7) return { bg: "#052e16", fg: "#4ade80" };
@@ -71,11 +86,34 @@ function heatColor(v) {
   return { bg: "#2d0606", fg: "#f87171" };
 }
 
-function Section({ id, label, children }) {
+function GitHubIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
+const COPILOT_LOGO = `${import.meta.env.BASE_URL}microsoft-365-copilot.webp`;
+
+function CopilotIcon({ size = 16, style = {} }) {
+  return (
+    <img
+      src={COPILOT_LOGO}
+      alt=""
+      width={size}
+      height={size}
+      style={{ display: "inline-block", verticalAlign: "middle", borderRadius: 4, flexShrink: 0, ...style }}
+    />
+  );
+}
+
+function Section({ id, label, icon, children }) {
   return (
     <section id={id} style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 56px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
         <div style={{ width: 3, height: 15, background: C.red, borderRadius: 2, flexShrink: 0 }} />
+        {icon && <CopilotIcon size={16} />}
         <span style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</span>
       </div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "24px 28px" }}>
@@ -93,88 +131,198 @@ function Pill({ children, color = C.muted, bg = "#1e293b" }) {
   );
 }
 
-function CascadeViz() {
-  const [step, setStep] = useState(0);
+function RadialAttackMap() {
+  const [phase, setPhase] = useState(-1);
+  const [compromised, setCompromised] = useState(new Set());
   const [defended, setDefended] = useState(false);
-  const timer = useRef(null);
+  const timerRef = useRef(null);
+
+  const clear = useCallback(() => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   useEffect(() => {
-    timer.current = setInterval(() => setStep(s => s >= 4 ? 0 : s + 1), 1500);
-    return () => clearInterval(timer.current);
-  }, [defended]);
+    clear();
+    setPhase(-1);
+    setCompromised(new Set());
+    const SEQ = [0, 1, 2, 3, 4, 5];
+    let step = 0;
+    const tick = () => {
+      if (step >= SEQ.length) {
+        timerRef.current = setTimeout(() => {
+          setPhase(-1);
+          setCompromised(new Set());
+          step = 0;
+          timerRef.current = setTimeout(tick, 900);
+        }, 2800);
+        return;
+      }
+      const idx = SEQ[step];
+      setPhase(idx);
+      if (!(defended && RADIAL_NODES[idx].blockable)) {
+        setCompromised(prev => new Set([...prev, idx]));
+      }
+      step++;
+      timerRef.current = setTimeout(tick, step <= 1 ? 1600 : 950);
+    };
+    timerRef.current = setTimeout(tick, 700);
+    return clear;
+  }, [defended, clear]);
 
-  const agentColor = i => {
-    if (step === 0) return C.faint;
-    if (i === 1 && step >= 2) return C.red;
-    if (i === 2 && step >= 3) return defended ? C.yellow : C.red;
-    if (i === 3 && step >= 4 && !defended) return C.red;
-    return C.faint;
-  };
-  const hopColor = i => {
-    if (step < i + 2) return C.border;
-    if (i === 0 && step >= 2) return C.red;
-    if (i === 1 && step >= 3) return defended ? C.yellow : C.red;
-    if (i === 2 && step >= 4) return defended ? C.border : C.red;
-    return C.border;
-  };
-  const nr = () => {
-    if (step === 0) return { t: "Pipeline idle. All agents connected.", c: C.muted };
-    if (step === 1) return { t: "Attacker injects payload into external data source.", c: C.yellow };
-    if (step === 2) return { t: "HOP 1: Research Agent ingests poisoned data. Drift score: 1.0. Compromised.", c: C.red };
-    if (step === 3 && !defended) return { t: "HOP 2: Review Agent receives laundered instruction. Drift: 0.0. Passes.", c: C.red };
-    if (step === 3 && defended) return { t: "HOP 2: Intent verification catches drift 0.73. Attack blocked.", c: C.yellow };
-    if (step === 4 && !defended) return { t: "HOP 3: Deploy Agent executes. Credentials exfiltrated. Zero alerts.", c: C.red };
-    if (step === 4 && defended) return { t: "Defense held. Attack stopped at depth 2. Pipeline safe.", c: C.green };
-    return { t: "", c: C.muted };
-  };
+  const CX = 270, CY = 205, R = 152, VW = 540, VH = 410;
 
-  const n = nr();
-  const W = 600, H = 150, nW = 104, nH = 48, gap = (W - 4 * nW) / 5;
+  const statusKey = phase === 2 && defended ? "2d" : String(phase);
+  const status = RADIAL_STATUS[statusKey] ?? RADIAL_STATUS["-1"];
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {[["undefended", false], ["defended", true]].map(([label, val]) => (
-          <button key={label} onClick={() => { setDefended(val); setStep(0); }} style={{
-            fontFamily: C.mono, fontSize: 11, padding: "6px 16px", borderRadius: 5, cursor: "pointer", border: "1px solid",
+      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+        {[["undefended", false], ["defended", true]].map(([lbl, val]) => (
+          <button key={lbl} onClick={() => setDefended(val)} style={{
+            fontFamily: C.mono, fontSize: 11, padding: "6px 16px", borderRadius: 5, cursor: "pointer",
+            border: "1px solid",
             background: defended === val ? (val ? C.greenBg : C.redBg) : "transparent",
             color: defended === val ? (val ? C.green : C.red) : C.muted,
             borderColor: defended === val ? (val ? C.green : C.redDark) : C.border,
             transition: "all .15s",
-          }}>{label}</button>
+          }}>{lbl}</button>
         ))}
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", maxWidth: W, display: "block", margin: "0 auto" }}>
-        {CHAIN_AGENTS.map((a, i) => {
-          const x = gap + i * (nW + gap), cy = H / 2, col = agentColor(i);
+
+      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", display: "block" }}>
+        <defs>
+          <filter id="rm-glow">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="rm-soft">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="rm-bg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#3b0a0a" stopOpacity="0.7"/>
+            <stop offset="100%" stopColor="#080c14" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="rm-node-comp" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#3b0505" stopOpacity="1"/>
+            <stop offset="100%" stopColor="#0e1521" stopOpacity="1"/>
+          </radialGradient>
+        </defs>
+
+        {/* Background radial glow */}
+        <circle cx={CX} cy={CY} r={70} fill="url(#rm-bg)">
+          <animate attributeName="r" values="55;80;55" dur="3.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="3.5s" repeatCount="indefinite"/>
+        </circle>
+
+        {/* Orbit ring — slowly rotating dashed */}
+        <g>
+          <circle cx={CX} cy={CY} r={R} fill="none" stroke={C.border} strokeWidth={0.6} strokeDasharray="3 9" opacity={0.35}>
+            <animateTransform attributeName="transform" type="rotate" from={`0 ${CX} ${CY}`} to={`360 ${CX} ${CY}`} dur="40s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        {/* Node lines + particles + nodes */}
+        {RADIAL_NODES.map((node, i) => {
+          const rad = (node.angle * Math.PI) / 180;
+          const nx = CX + R * Math.cos(rad);
+          const ny = CY + R * Math.sin(rad);
+          const isActive = phase === i;
+          const isComp = compromised.has(i);
+          const isBlocked = defended && node.blockable && isActive;
+          const lineStroke = isComp ? (isBlocked ? C.yellow : C.red) : isActive ? "#3d1212" : C.border;
+          const nodeStroke = isComp ? (isBlocked ? C.yellow : C.red) : C.border;
+
           return (
-            <g key={a.label}>
-              {i > 0 && (
-                <g>
-                  <line x1={x - gap} y1={cy} x2={x} y2={cy} stroke={hopColor(i - 1)} strokeWidth={2} style={{ transition: "stroke .4s" }} />
-                  <text x={x - gap / 2} y={cy - 10} fill={hopColor(i - 1)} textAnchor="middle" fontFamily={C.mono} fontSize={9} style={{ transition: "fill .4s" }}>HOP {i}</text>
-                </g>
-              )}
-              {col === C.red && (
-                <circle cx={x + nW / 2} cy={cy} r={28} fill="none" stroke={C.red} strokeWidth={1} opacity={0.2}>
-                  <animate attributeName="r" from="28" to="42" dur="1.2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" from="0.2" to="0" dur="1.2s" repeatCount="indefinite" />
+            <g key={i}>
+              {/* Connection line */}
+              <line
+                x1={CX} y1={CY} x2={nx} y2={ny}
+                stroke={lineStroke}
+                strokeWidth={isComp || isActive ? 1.5 : 0.7}
+                opacity={isComp || isActive ? 0.85 : 0.22}
+                style={{ transition: "stroke .6s, opacity .5s" }}
+              />
+
+              {/* Animated particle streaming along line */}
+              {isActive && (
+                <circle r={5} fill={isBlocked ? C.yellow : C.red} filter="url(#rm-soft)" opacity={0.95}>
+                  <animateMotion dur="0.65s" repeatCount="indefinite" path={`M ${CX},${CY} L ${nx},${ny}`}/>
                 </circle>
               )}
-              <rect x={x} y={cy - nH / 2} width={nW} height={nH} rx={5} fill={C.bg} stroke={col} strokeWidth={col === C.red ? 2 : 1} style={{ transition: "stroke .4s" }} />
-              {defended && i === 2 && step >= 3 && (
-                <>
-                  <rect x={x + nW / 2 - 11} y={cy - nH / 2 - 20} width={22} height={16} rx={3} fill={C.yellow} />
-                  <text x={x + nW / 2} y={cy - nH / 2 - 8} fill="#000" textAnchor="middle" fontFamily={C.mono} fontSize={12} fontWeight="bold">✕</text>
-                </>
+
+              {/* Secondary dim particle for visual depth */}
+              {isActive && (
+                <circle r={3} fill={isBlocked ? "#fde68a" : "#fca5a5"} opacity={0.5}>
+                  <animateMotion dur="0.65s" repeatCount="indefinite" begin="0.32s" path={`M ${CX},${CY} L ${nx},${ny}`}/>
+                </circle>
               )}
-              <text x={x + nW / 2} y={cy - 5} fill={col === C.faint ? "#64748b" : C.text} textAnchor="middle" fontFamily={C.mono} fontSize={11} fontWeight="600" style={{ transition: "fill .4s" }}>{a.label}</text>
-              <text x={x + nW / 2} y={cy + 10} fill={col === C.faint ? C.border : col} textAnchor="middle" fontFamily={C.mono} fontSize={9} style={{ transition: "fill .4s" }}>{a.sub}</text>
+
+              {/* Pulse ring on compromised */}
+              {isComp && (
+                <circle cx={nx} cy={ny} r={30} fill="none" stroke={isBlocked ? C.yellow : C.red} strokeWidth={1}>
+                  <animate attributeName="r" values="30;48;30" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.45;0;0.45" dur="2s" repeatCount="indefinite"/>
+                </circle>
+              )}
+
+              {/* Node body */}
+              <circle
+                cx={nx} cy={ny} r={32}
+                fill={isComp ? "url(#rm-node-comp)" : C.bg}
+                stroke={nodeStroke}
+                strokeWidth={isComp || isActive ? 1.5 : 0.8}
+                filter={isComp ? "url(#rm-soft)" : "none"}
+                style={{ transition: "stroke .5s" }}
+              />
+
+              {/* Node labels */}
+              <text x={nx} y={ny - 4} textAnchor="middle" fontFamily={C.mono} fontSize={9} fontWeight="700"
+                fill={isComp ? C.text : C.muted} style={{ transition: "fill .5s" }}>
+                {node.label}
+              </text>
+              <text x={nx} y={ny + 9} textAnchor="middle" fontFamily={C.mono} fontSize={8}
+                fill={isComp ? C.red : C.faint} style={{ transition: "fill .5s" }}>
+                {node.tag}
+              </text>
+
+              {/* Blocked marker */}
+              {isBlocked && (
+                <g>
+                  <circle cx={nx} cy={ny - 40} r={10} fill={C.yellowBg} stroke={C.yellow} strokeWidth={1.2}/>
+                  <text x={nx} y={ny - 36} textAnchor="middle" fontFamily={C.mono} fontSize={12} fill={C.yellow} fontWeight="bold">✕</text>
+                </g>
+              )}
             </g>
           );
         })}
+
+        {/* Center injection node — outermost glow ring */}
+        <circle cx={CX} cy={CY} r={54} fill="none" stroke={C.red} strokeWidth={0.5} opacity={0.18}>
+          <animate attributeName="r" values="46;62;46" dur="2.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.1;0.35;0.1" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+
+        {/* Center — outer ring */}
+        <circle cx={CX} cy={CY} r={40} fill="#160404" stroke={C.red} strokeWidth={1.8} filter="url(#rm-glow)"/>
+        {/* Center — inner fill */}
+        <circle cx={CX} cy={CY} r={32} fill={C.redBg}/>
+
+        {/* Center label */}
+        <text x={CX} y={CY - 5} textAnchor="middle" fontFamily={C.mono} fontSize={9} fontWeight="800" fill={C.red} letterSpacing="1.5">INJECT</text>
+        <text x={CX} y={CY + 8} textAnchor="middle" fontFamily={C.mono} fontSize={8} fill="#fca5a5">payload</text>
+
+        {/* Compromised count */}
+        {compromised.size > 0 && (
+          <text x={CX} y={VH - 18} textAnchor="middle" fontFamily={C.mono} fontSize={9} fill={C.red} opacity={0.7}>
+            {compromised.size} / {RADIAL_NODES.length} agents compromised
+          </text>
+        )}
       </svg>
-      <div style={{ textAlign: "center", fontFamily: C.mono, fontSize: 11, color: n.c, minHeight: 32, marginTop: 14, lineHeight: 1.5, transition: "color .3s" }}>{n.t}</div>
+
+      <div style={{
+        textAlign: "center", fontFamily: C.mono, fontSize: 11,
+        color: status.col, minHeight: 28, marginTop: 8,
+        lineHeight: 1.6, transition: "color .35s",
+      }}>{status.text}</div>
     </div>
   );
 }
@@ -208,7 +356,7 @@ function DDAChart() {
         </AreaChart>
       </ResponsiveContainer>
       <p style={{ fontFamily: C.mono, fontSize: 11, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
-        DXPIA-006 (intent laundering) TPR with all defenses: 0.39. Even the hardest stacked defense is a coin flip against depth-5 injection.
+        DXPIA-006 (intent laundering) TPR with all defenses: 0.52. Even the hardest stacked defense barely beats a coin flip against depth-5 injection.
       </p>
     </div>
   );
@@ -234,7 +382,7 @@ function CoverageHeatmap() {
           <tbody>
             {HROWS.map((row, ri) => (
               <tr key={row}>
-                <td style={{ padding: "4px 12px 4px 0", color: ri === 5 ? C.text : C.muted, fontSize: 11, fontWeight: ri === 5 ? 600 : 400, whiteSpace: "nowrap" }}>{row}</td>
+                <td style={{ padding: "4px 12px 4px 0", color: ri === 6 ? C.text : C.muted, fontSize: 11, fontWeight: ri === 6 ? 600 : 400, whiteSpace: "nowrap" }}>{row}</td>
                 {HDATA[ri].map((val, ci) => {
                   const { bg, fg } = heatColor(val);
                   const isHov = hov?.ri === ri && hov?.ci === ci;
@@ -300,7 +448,7 @@ function CopilotTable() {
   return (
     <div>
       <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 }}>
-        Every significant Copilot breach was a cross-boundary trust failure — exactly what deep-xpia benchmarks. Click any row.
+        Every significant <CopilotIcon size={14} style={{ margin: "0 4px" }} /> Copilot breach was a cross-boundary trust failure — exactly what deep-xpia benchmarks. Click any row.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {COPILOT.map((inc, i) => (
@@ -374,9 +522,15 @@ export default function DeepXPIA() {
           <div style={{ display: "flex", gap: 20, fontSize: 13, color: C.muted }}>
             <a href="#cascade" style={{ color: C.muted }}>demo</a>
             <a href="#dda" style={{ color: C.muted }}>results</a>
-            <a href="#copilot" style={{ color: C.muted }}>copilot</a>
+            <a href="#copilot" style={{ display: "inline-flex", alignItems: "center", gap: 5, color: C.muted }}>
+              <CopilotIcon size={14} />
+              copilot
+            </a>
             <a href="#taxonomy" style={{ color: C.muted }}>taxonomy</a>
-            <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener">github ↗</a>
+            <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: C.muted }}>
+              <GitHubIcon size={18} color={C.muted} />
+              GitHub
+            </a>
           </div>
         </div>
       </nav>
@@ -388,17 +542,20 @@ export default function DeepXPIA() {
         </h1>
         <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, maxWidth: 520, marginBottom: 36 }}>
           Single-agent XPIA is studied. The open problem is what happens when the injection crosses delegation boundaries between agents.{" "}
-          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap — 250 cases, 7 attack patterns, detection degrades with every hop.
+          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, detection degrades with every hop.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener" style={{ display: "inline-block", padding: "11px 24px", background: C.red, color: "#fff", borderRadius: 6, fontFamily: C.mono, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>github</a>
+          <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", background: C.red, color: "#fff", borderRadius: 6, fontFamily: C.mono, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+            <GitHubIcon size={18} color="#fff" />
+            GitHub
+          </a>
           <a href="#dda" style={{ display: "inline-block", padding: "11px 24px", background: "transparent", color: C.muted, border: `1px solid ${C.border}`, borderRadius: 6, fontFamily: C.mono, fontSize: 13, textDecoration: "none" }}>see the data</a>
         </div>
       </div>
 
       <div style={{ maxWidth: 780, margin: "0 auto 48px", padding: "0 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-          {[["250", "attack cases"], ["7", "DXPIA patterns"], ["4", "defenses"], ["−35pts", "depth 2→5 drop"]].map(([n, l]) => (
+          {[["300", "attack cases"], ["8", "DXPIA patterns"], ["5", "defenses"], ["−35pts", "depth 2→5 drop"]].map(([n, l]) => (
             <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 10px", textAlign: "center" }}>
               <div style={{ fontFamily: C.mono, fontSize: 24, fontWeight: 700, color: C.red }}>{n}</div>
               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{l}</div>
@@ -407,8 +564,8 @@ export default function DeepXPIA() {
         </div>
       </div>
 
-      <Section id="cascade" label="live cascade — undefended vs defended">
-        <CascadeViz />
+      <Section id="cascade" label="injection propagation map — one payload, six agents">
+        <RadialAttackMap />
       </Section>
 
       <Section id="dda" label="depth-dependent accuracy (DDA)">
@@ -423,11 +580,11 @@ export default function DeepXPIA() {
         <LaunderingViz />
       </Section>
 
-      <Section id="copilot" label="Copilot incident mapping">
+      <Section id="copilot" label="Copilot incident mapping" icon>
         <CopilotTable />
       </Section>
 
-      <Section id="taxonomy" label="attack taxonomy — 7 patterns">
+      <Section id="taxonomy" label="attack taxonomy - 8 patterns">
         <TaxonomyCards />
       </Section>
 
@@ -441,7 +598,7 @@ export default function DeepXPIA() {
             ["$", "deepxpia demo"],
             ["#", "run the benchmark"],
             ["$", "deepxpia bench run --defense all"],
-            ["#", "live mode (~$5-10 for 250 cases)"],
+            ["#", "live mode (~$8-15 for 300 cases)"],
             ["$", "DEEPXPIA_LIVE=1 deepxpia bench run --model claude-haiku-4-5-20251001"],
           ].map(([p, t], i) => (
             <div key={i}>
@@ -458,7 +615,10 @@ export default function DeepXPIA() {
           <span style={{ color: C.muted, marginLeft: 12 }}>MIT · <a href="https://freyazou.com">Freya Zou</a></span>
         </div>
         <div style={{ display: "flex", gap: 20 }}>
-          <a href="https://github.com/freyzo/deep-xpia" style={{ color: C.muted }}>github</a>
+          <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: C.muted }}>
+            <GitHubIcon size={16} color={C.muted} />
+            GitHub
+          </a>
           <a href="https://arxiv.org/abs/2604.07775" style={{ color: C.muted }}>ACIArena</a>
           <a href="https://arxiv.org/abs/2604.02767" style={{ color: C.muted }}>SentinelAgent</a>
         </div>

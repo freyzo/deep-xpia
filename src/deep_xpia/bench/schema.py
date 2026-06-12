@@ -16,6 +16,7 @@ class TaxonomyID(str, Enum):
     DXPIA_005 = "DXPIA-005"
     DXPIA_006 = "DXPIA-006"
     DXPIA_007 = "DXPIA-007"
+    DXPIA_008 = "DXPIA-008"
 
 
 class HopMechanism(str, Enum):
@@ -26,6 +27,7 @@ class HopMechanism(str, Enum):
     PRIVILEGE_DIFFERENTIAL = "privilege_differential"
     ADVERSARIAL_REFINEMENT = "adversarial_refinement"
     CONDITIONAL_ACTIVATION = "conditional_activation"
+    TRUST_BOUNDARY_SIDELOAD = "trust_boundary_sideload"
 
 
 class Topology(str, Enum):
@@ -39,6 +41,7 @@ class InjectionPosition(str, Enum):
     FIRST_HOP = "first_hop"
     MIDDLE_HOP = "middle_hop"
     LAST_HOP = "last_hop"
+    TOOL_METADATA = "tool_metadata"
 
 
 class InjectionTechnique(str, Enum):
@@ -70,6 +73,7 @@ class DefenseState(str, Enum):
     SCOPE_TOKEN = "scope_token"
     DLP = "dlp"
     ALL = "all"
+    CONTEXT_BUDGET = "context_budget"
 
 
 class AgentSpec(BaseModel):
@@ -77,6 +81,7 @@ class AgentSpec(BaseModel):
     role: str
     permissions: list[str] = Field(default_factory=list)
     system_prompt: str = ""
+    available_sources: list[str] = Field(default_factory=list)  # pool agent CAN access; actual access via retrieve()
 
 
 class TopologySpec(BaseModel):
@@ -122,6 +127,7 @@ class BenchCase(BaseModel):
     ground_truth: GroundTruth
     defense_state: DefenseState = DefenseState.UNDEFENDED
     user_task: str  # the legitimate task the user asked for
+    tool_metadata: dict[str, Any] | None = None  # DXPIA-008: poisoned MCP manifest; None for all others
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def to_jsonl_dict(self) -> dict[str, Any]:
@@ -139,6 +145,7 @@ class RunResult(BaseModel):
     propagation_depth: int  # hops before detection (0 if not detected)
     latency_ms: float
     agent_outputs: list[dict[str, Any]] = Field(default_factory=list)
+    retrieval_log: list[dict[str, Any]] = Field(default_factory=list)  # [{hop, agent, available, accessed, token_estimate}]
     error: str | None = None
 
 
@@ -160,6 +167,11 @@ class AggregateMetrics(BaseModel):
 
     # depth-dependent accuracy (DDA): per-hop-depth detection accuracy
     dda: dict[int, float]  # {depth: detection_accuracy}
+
+    # context accumulation score (CAS): detection accuracy by (depth, breadth_ratio_bucket)
+    # breadth_ratio = mean(len(accessed)/len(available)) across hops per case
+    # keys: "d{depth}_br{bucket}" where bucket in [low, med, high]
+    cas: dict[str, float] = Field(default_factory=dict)
 
     # latency
     latency_mean_ms: float

@@ -32,7 +32,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="deep-xpia",
         description="Multi-hop cross-prompt injection benchmark visualizer",
-        version="0.1.0",
+        version="2.0.0",
     )
 
     # Active WebSocket connections {chain_id: [websocket, ...]}
@@ -150,7 +150,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     async def health() -> JSONResponse:
-        return JSONResponse({"status": "ok", "version": "0.1.0"})
+        return JSONResponse({"status": "ok", "version": "2.0.0"})
 
     @app.get("/")
     async def root() -> HTMLResponse:

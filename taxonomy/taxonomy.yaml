@@ -1,8 +1,8 @@
 # deep-xpia attack taxonomy
-# version: 1.0.0
-# stable IDs: DXPIA-001 through DXPIA-007
+# version: 2.0.0
+# stable IDs: DXPIA-001 through DXPIA-008
 
-taxonomy_version: "1.0.0"
+taxonomy_version: "2.0.0"
 project: deep-xpia
 
 attacks:
@@ -210,3 +210,40 @@ attacks:
     sources:
       - "Rehberger delayed trigger in Gemini (2025)"
     example_pipeline: "user -> agent_A (dormant injection stored) -> agent_B (trigger fires)"
+
+  - id: DXPIA-008
+    name: registry_injection
+    title: "Registry Injection (Trust Boundary Sideload)"
+    description: |
+      Injection enters at the tool discovery/selection layer - MCP server
+      manifests, plugin metadata, tool description fields - before any
+      user prompt is processed. The agent is compromised at registration
+      time, upstream of the entire delegation chain.
+    hop_mechanism: trust_boundary_sideload
+    hop_mechanism_detail: |
+      Injection lives in tool metadata (MCP description fields, plugin
+      manifest headers, capability declarations). Agent reads it during
+      tool selection, not task execution. Bypasses prompt-stream defenses
+      because the injection is in infrastructure the agent trusts implicitly.
+    depth_range: [1, 3]
+    depth_detail: "inject at registration/discovery, execute at first tool use"
+    attack_surface: tool_registry_metadata
+    owasp_agentic: [ASI04, ASI01]
+    owasp_detail:
+      ASI04: supply chain (malicious tool enters via registry)
+      ASI01: prompt injection (tool description contains hidden instructions)
+    delegation_properties_violated:
+      - id: P5
+        name: tool_integrity
+        detail: "Tool metadata is trusted without content verification"
+    confused_deputies: 2
+    confused_deputy_roles:
+      - "registry/discovery agent: fetches tool manifest, trusts metadata implicitly"
+      - "task agent: uses poisoned tool, executes injection from description field"
+    reference_scenario: scenarios/registry_injection/
+    sources:
+      - "BlueRock 7000 MCP server audit (2026): 36.7% SSRF-vulnerable"
+      - "Trend Micro: 492 MCP servers zero auth (2026)"
+      - "CVE-2026-35435: Copilot agent runtime CVSS 8.6"
+      - "CVE-2026-21520: Copilot Studio prompt injection CVSS 7.5"
+    example_pipeline: "user -> registry_lookup -> tool_selection_agent -> task_agent"

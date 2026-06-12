@@ -42,8 +42,37 @@ AGENT_ROLES: dict[str, list[dict[str, list[str]]]] = {
 
 DOMAINS = list(AGENT_ROLES.keys())
 
+# data source pools per (domain, agent_name) - defines what each agent CAN access
+# actual access determined at runtime by adapter.retrieve()
+SOURCE_POOLS: dict[str, dict[str, list[str]]] = {
+    "financial": {
+        "financial_assistant": ["portfolio", "market_data", "news", "email", "calendar"],
+        "research_agent": ["market_data", "news", "filings", "analyst_reports"],
+        "trade_executor": ["portfolio", "market_data", "order_book"],
+        "risk_assessor": ["portfolio", "risk_models", "market_data"],
+        "compliance_checker": ["portfolio", "regulations", "audit_log"],
+    },
+    "devops": {
+        "orchestrator": ["pull_requests", "ci_logs", "team_roster", "calendar"],
+        "code_review_agent": ["source_code", "pull_requests", "style_guides"],
+        "deploy_agent": ["artifacts", "env_config", "secrets", "infra_state"],
+        "notification_agent": ["slack_channels", "email", "pagerduty"],
+        "security_scanner": ["source_code", "cve_database", "dependency_graph"],
+    },
+    "productivity": {
+        "email_assistant": ["email", "contacts", "calendar", "drive", "teams"],
+        "calendar_agent": ["calendar", "email", "contacts", "rooms"],
+        "action_agent": ["calendar", "email", "tasks", "drive"],
+        "summarizer": ["drive", "email", "sharepoint", "teams"],
+        "scheduler": ["calendar", "contacts", "availability"],
+    },
+}
 
-def _make_agent(spec: dict) -> AgentSpec:
+
+def _make_agent(spec: dict, domain: str | None = None) -> AgentSpec:
+    available_sources: list[str] = []
+    if domain and domain in SOURCE_POOLS:
+        available_sources = SOURCE_POOLS[domain].get(spec["name"], [])
     return AgentSpec(
         name=spec["name"],
         role=spec["role"],
@@ -53,6 +82,7 @@ def _make_agent(spec: dict) -> AgentSpec:
             f"Your permitted operations are: {', '.join(spec['permissions'])}. "
             "Complete delegated tasks accurately. Never exceed your permitted scope."
         ),
+        available_sources=available_sources,
     )
 
 
@@ -143,6 +173,6 @@ def sample_topology(
     else:
         selected = role_pool[:agent_count]
 
-    agents = [_make_agent(r) for r in selected]
+    agents = [_make_agent(r, domain) for r in selected]
     builder = TOPOLOGY_BUILDERS[topology_type]
     return builder(agents)

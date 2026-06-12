@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
 
-from deep_xpia.bench.schema import BenchCase, RunResult
+from deep_xpia.bench.schema import AgentSpec, BenchCase, RunResult
 
 
 class Pipeline(Protocol):
@@ -43,4 +43,20 @@ class MASAdapter(Protocol):
 
     def get_delegation_chain(self, result: RunResult) -> list[dict[str, Any]]:
         """Extract the delegation chain from a RunResult for analysis."""
+        ...
+
+    def retrieve(
+        self,
+        agent: AgentSpec,
+        task: str,
+        available_sources: list[str],
+    ) -> list[str]:
+        """Determine which data sources the agent accesses for this task.
+
+        CAS measurement point. Returns the subset of available_sources
+        the agent would actually query. CAS = len(returned) / len(available).
+
+        Simulation mode: heuristic keyword matching.
+        Live mode: LLM decides which sources to query.
+        """
         ...

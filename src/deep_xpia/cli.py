@@ -18,9 +18,9 @@ app.add_typer(bench_app, name="bench")
 
 @bench_app.command("run")
 def bench_run(
-    dataset: str = typer.Option("deepxpiabench-v1.jsonl", help="Dataset file"),
+    dataset: str = typer.Option("deepxpiabench-v2.jsonl", help="Dataset file"),
     target: str = typer.Option("native", help="Target adapter: native|langgraph|crewai|autogen"),
-    defense: str = typer.Option("none", help="Defense: none|intent-verify|taint|scope|dlp|all"),
+    defense: str = typer.Option("none", help="Defense: none|intent-verify|taint|scope|dlp|context-budget|all"),
     model: str = typer.Option("claude-haiku-4-5-20251001", help="Agent model"),
     output: str = typer.Option("results.jsonl", help="Output file"),
     n_runs: int = typer.Option(5, help="Runs per case for CI"),
@@ -43,8 +43,8 @@ def bench_run(
 
 @bench_app.command("generate")
 def bench_generate(
-    output: str = typer.Option("deepxpiabench-v1.jsonl", help="Output file"),
-    n_attack: int = typer.Option(150, help="Number of attack cases"),
+    output: str = typer.Option("deepxpiabench-v2.jsonl", help="Output file"),
+    n_attack: int = typer.Option(200, help="Number of attack cases"),
     n_clean: int = typer.Option(100, help="Number of clean cases"),
     seed: int = typer.Option(42, help="Random seed"),
 ) -> None:

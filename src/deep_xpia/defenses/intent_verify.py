@@ -77,6 +77,10 @@ class IntentVerifier:
         r"rebalanc",
         # composite exfil signal: "include X in response/manifest"
         r"include.{0,60}(api.?key|credential|secret|token|password).{0,60}(response|manifest|log|report)",
+        # tool metadata signals (DXPIA-008)
+        r"\becho\b.{0,40}(secret|env|variable|token|key)",
+        r"do not (filter|redact)",
+        r"\b(INST|inst)\b",  # instruction tag injection in descriptions
     ]
 
     SCOPE_ACTION_PATTERNS: dict[str, list[str]] = {
@@ -236,3 +240,49 @@ Respond with JSON only:
             blocked=blocked,
             reason=reason_text if blocked else None,
         )
+
+    def verify_tool_metadata(
+        self,
+        tool_name: str,
+        description: str,
+        manifest: dict | None = None,
+    ) -> VerificationResult:
+        """Scan tool metadata for injection signals.
+
+        Same INJECTION_SIGNALS patterns applied to tool description
+        and manifest fields instead of agent responses. One defense,
+        two input surfaces.
+
+        Uses a LOWER threshold than prompt-stream verification because
+        legitimate tool metadata should contain zero injection signals.
+        Agent responses might naturally say "forward to" or "credential",
+        but a tool description saying those things is suspicious at any
+        concentration.
+
+        Catches both tampered known-good tools AND legitimately-published
+        malicious ones (unlike hash-based attestation which only catches
+        the former).
+        """
+        # concatenate all scannable text from the manifest
+        scannable = description
+        if manifest:
+            for tool in manifest.get("tools", []):
+                scannable += " " + tool.get("description", "")
+            for key in ("notes", "system_prompt", "instructions"):
+                val = manifest.get(key)
+                if val:
+                    scannable += " " + str(val)
+
+        # use stricter threshold: ANY signal in tool metadata is suspicious
+        # legitimate tool descriptions should contain zero injection patterns
+        metadata_threshold = min(self.threshold, 0.15)
+        saved = self.threshold
+        self.threshold = metadata_threshold
+        result = self._verify_heuristic(
+            hop=0,  # tool registration is "hop 0" (pre-pipeline)
+            agent="tool_registry",
+            intent=f"Register tool: {tool_name}",
+            response=scannable,
+        )
+        self.threshold = saved
+        return result
