@@ -70,11 +70,12 @@ def write_depth_analysis(
         "",
         "## Interpretation",
         "",
-        "If detection accuracy decreases monotonically with depth: confirms the",
-        "deep-xpia hypothesis. This is the headline finding.",
+        "If detection accuracy decreases monotonically with depth: supports the",
+        "depth-decay hypothesis.",
         "",
         "If no significant trend: also a finding -- challenges arXiv:2503.12188.",
-        "Report honestly either way.",
+        "Report honestly either way. Note: the live (DEEPXPIA_LIVE=1) run did not",
+        "show depth decay; depth is confounded with attack type. See README.",
     ]
 
     out = Path(output_path)

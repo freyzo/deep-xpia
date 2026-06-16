@@ -1,5 +1,11 @@
 # DeepXPIABench v1 Results
 
+> SIMULATED / SUPERSEDED. Every number on this page comes from the heuristic
+> simulator (illustrative priors), not measurement, and is superseded by the
+> live-measured v2 results in the README and `results/` live tables. The
+> "headline finding" below (detection drops with depth) did NOT replicate when
+> measured live. Kept for historical reference only. Do not cite as a result.
+
 **Dataset:** 250 cases (150 attack, 100 clean)  
 **Runs:** N=5 per case  
 **Model:** heuristic simulation (set `DEEPXPIA_LIVE=1` for real API calls)  

@@ -40,8 +40,8 @@ differentiation_from_aciarena:
   deep_xpia_taxonomy_depth: "7 categories with hop_mechanism classification"
   deep_xpia_additions:
     - "hop_mechanism field: HOW injection crosses boundaries (not just THAT it does)"
-    - "DDA metric: depth-dependent accuracy (detection degrades with hop depth)"
+    - "DDA metric: depth-dependent accuracy (measures detection vs hop depth; live run found no depth decay)"
     - "confused deputy framework: which agents are tricked and why"
     - "system design analysis: delegation architecture as attack surface"
-    - "intent laundering finding: injection quality IMPROVES with depth (DXPIA-006)"
+    - "intent laundering mechanism: per-case marker stripping (DXPIA-006); not a population-level depth trend"
     - "live chain visualizer: WHY a chain is vulnerable, not just THAT it failed"
