@@ -62,3 +62,5 @@ dashboard/build/
 
 # mypy
 .mypy_cache/
+wiki/ # keep local copies for the wiki repo
+linkedin-drafts.md # never commit job-hunt notes
