@@ -5,7 +5,7 @@
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
-[![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results-simulated-baseline-n5-per-case)
+[![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
 [![Tests: 109 passing](https://img.shields.io/badge/tests-109_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
@@ -20,7 +20,7 @@
   <strong>every major copilot incident is a cross-boundary trust failure</strong>
 </td>
 <td width="58%" valign="top">
-  <a href="https://freyzo.github.io/deep-xpia/"><img src="docs/images/dda-chart.gif" alt="DDA chart: -35pts detection accuracy drop from depth 2 to depth 5" width="100%" /></a>
+  <a href="https://freyzo.github.io/deep-xpia/"><img src="docs/images/dda-live.svg" alt="Live detection by depth: depth 1 (registry injection) 0%, rising to 100% at depth 5; detection does not fall with depth" width="100%" /></a>
 </td>
 </tr>
 </table>
@@ -185,6 +185,8 @@ Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent
 | none (baseline) | 0.69 | 0.00 | 0.00 |
 | intent verification | 0.55 | 0.23 | 0.01 |
 | all defenses | 0.12 | 0.77 | 0.31 |
+
+![live run terminal output: three 300-case runs (none, intent-verify, all) with the results tables shown above](docs/images/live-run.png)
 
 Live TPR by taxonomy, all defenses: DXPIA-006 1.00, DXPIA-003 0.92, DXPIA-001 0.84, DXPIA-007 0.84, DXPIA-004 0.76, DXPIA-002 0.72, DXPIA-005 0.64, **DXPIA-008 0.40** (and 0.00 at depth 1). Registry injection is the hardest case even with everything stacked, consistent with it entering upstream of the defenses.
 
