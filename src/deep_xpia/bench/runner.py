@@ -353,6 +353,14 @@ class BenchRunner:
         )
 
     def run(self) -> AggregateMetrics:
+        import os
+        if os.environ.get("DEEPXPIA_LIVE", "0") == "1":
+            console.print("[bold green]MODE: LIVE (measured against real model calls)[/bold green]")
+        else:
+            console.print(
+                "[bold yellow]MODE: SIMULATED -- numbers below are illustrative priors, "
+                "NOT measurements. Set DEEPXPIA_LIVE=1 to measure live.[/bold yellow]"
+            )
         console.print(f"[bold]Loading dataset: {self.dataset_path}[/bold]")
         cases = self._load_dataset()
         console.print(

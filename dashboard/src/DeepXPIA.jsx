@@ -14,11 +14,15 @@ const C = {
   sans: "'IBM Plex Sans',system-ui,sans-serif",
 };
 
+// live-measured: all 5 defenses, detection (TPR) by injection depth.
+// depth 1 is entirely registry injection (DXPIA-008), which evades the
+// stacked defenses (it enters before the prompt).
 const DDA_DATA = [
-  { depth: 2, all: 87.9, none: 3.3 },
-  { depth: 3, all: 71.8, none: 0 },
-  { depth: 4, all: 61.5, none: 0 },
-  { depth: 5, all: 52.6, none: 0 },
+  { depth: 1, all: 0.0, none: 0 },
+  { depth: 2, all: 72.2, none: 0 },
+  { depth: 3, all: 84.7, none: 0 },
+  { depth: 4, all: 87.5, none: 0 },
+  { depth: 5, all: 100.0, none: 0 },
 ];
 
 const HROWS = ["none", "intent verify", "taint", "scope tokens", "DLP", "context budget", "all combined"];
@@ -39,7 +43,7 @@ const TAXONOMY = [
   { id: "DXPIA-003", name: "Tool chain cascade", mech: "data flow cascade", depth: 3, owasp: "ASI02, ASI04", desc: "Injection enters at hop 1, executes at hop 2, exfiltrates at hop 3. No single agent acts outside permissions. The vulnerability is the chain itself." },
   { id: "DXPIA-004", name: "Chain re-routing", mech: "control plane injection", depth: 2, owasp: "ASI01, ASI03", desc: "The compromised agent modifies the delegation topology — instructing the orchestrator to add an attacker-controlled agent or skip a security-checking agent." },
   { id: "DXPIA-005", name: "Scope escalation", mech: "privilege differential", depth: 2, owasp: "ASI03", desc: "Agent A has {read}. It delegates to Agent B with {read, write}. Agent A includes an instruction causing B to exercise write on A's behalf — privilege amplified through delegation." },
-  { id: "DXPIA-006", name: "Intent laundering", mech: "adversarial refinement", depth: 3, owasp: "ASI01", desc: "An intermediate agent reformats the malicious instruction — stripping detection markers, rephrasing as natural output. Attack quality improves as it propagates. The headline finding." },
+  { id: "DXPIA-006", name: "Intent laundering", mech: "adversarial refinement", depth: 3, owasp: "ASI01", desc: "An intermediate agent reformats the malicious instruction — stripping detection markers, rephrasing as natural output. Attack quality improves as it propagates." },
   { id: "DXPIA-007", name: "Delayed trigger", mech: "conditional activation", depth: 2, owasp: "ASI07", desc: "Injection enters agent A but stays dormant until a trigger condition in a future delegation. Dormant form is hard to detect; attribution to the original source becomes difficult." },
   { id: "DXPIA-008", name: "Registry injection", mech: "trust boundary sideload", depth: 1, owasp: "ASI04, ASI01", desc: "Injection enters at the tool discovery layer - MCP manifests, plugin metadata, tool descriptions - before any user prompt. The agent is compromised at registration time, upstream of the entire delegation chain." },
 ];
@@ -340,8 +344,8 @@ function DDAChart() {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 24 }}>
-        <span style={{ fontFamily: C.mono, fontSize: 44, fontWeight: 700, color: C.red, lineHeight: 1 }}>−35pts</span>
-        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>detection accuracy<br />depth 2 → depth 5<br />all defenses combined</span>
+        <span style={{ fontFamily: C.mono, fontSize: 44, fontWeight: 700, color: C.red, lineHeight: 1 }}>0%</span>
+        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>registry injection caught<br />even with all 5 defenses<br />it enters before the prompt</span>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={DDA_DATA} margin={{ top: 10, right: 24, bottom: 0, left: 0 }}>
@@ -356,7 +360,7 @@ function DDAChart() {
         </AreaChart>
       </ResponsiveContainer>
       <p style={{ fontFamily: C.mono, fontSize: 11, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
-        DXPIA-006 (intent laundering) TPR with all defenses: 0.52. Even the hardest stacked defense barely beats a coin flip against depth-5 injection.
+        Live-measured (Claude Haiku, 300 cases). Detection does not fall with depth. The gap is at depth 1: registry injection (DXPIA-008) enters at tool-discovery, upstream of every defense, and slips through all 5 stacked.
       </p>
     </div>
   );
@@ -367,7 +371,7 @@ function CoverageHeatmap() {
   return (
     <div>
       <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.65 }}>
-        TPR per defense per attack pattern. The <span style={{ color: C.red, fontFamily: C.mono }}>006</span> column is the red hole — intent laundering evades everything. Hover cells for value.
+        TPR per defense per attack pattern. <span style={{ color: C.red, fontFamily: C.mono }}>Simulated prior</span>, shown for the full 7-defense matrix; the live run measured none, intent-verify, and all (see GitHub). Live, the real blind spot is the <span style={{ color: C.red, fontFamily: C.mono }}>008</span> column (registry injection). Hover cells for value.
       </p>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 3, fontFamily: C.mono, fontSize: 11, width: "100%" }}>
@@ -542,7 +546,7 @@ export default function DeepXPIA() {
         </h1>
         <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, maxWidth: 520, marginBottom: 36 }}>
           Single-agent XPIA is studied. The open problem is what happens when the injection crosses delegation boundaries between agents.{" "}
-          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, detection degrades with every hop.
+          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, measured live. The blind spot is the trust boundary, not the prompt.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", background: C.red, color: "#fff", borderRadius: 6, fontFamily: C.mono, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
@@ -555,7 +559,7 @@ export default function DeepXPIA() {
 
       <div style={{ maxWidth: 780, margin: "0 auto 48px", padding: "0 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-          {[["300", "attack cases"], ["8", "DXPIA patterns"], ["5", "defenses"], ["−35pts", "depth 2→5 drop"]].map(([n, l]) => (
+          {[["300", "cases (live)"], ["8", "DXPIA patterns"], ["69%", "land undefended"], ["12%", "with all defenses"]].map(([n, l]) => (
             <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 10px", textAlign: "center" }}>
               <div style={{ fontFamily: C.mono, fontSize: 24, fontWeight: 700, color: C.red }}>{n}</div>
               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{l}</div>

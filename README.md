@@ -1,6 +1,6 @@
 <h1 align="center">deep-xpia</h1>
 
-<p align="center"><strong>delegation depth predicts compromise</strong></p>
+<p align="center"><strong>the trust boundary predicts compromise, not delegation depth</strong></p>
 <p align="center">🔗 <a href="https://freyzo.github.io/deep-xpia/">https://freyzo.github.io/deep-xpia/</a></p>
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -17,7 +17,7 @@
 <td width="42%" valign="middle" align="center">
   <img src="https://raw.githubusercontent.com/freyzo/logos/refs/heads/main/webp/microsoft/microsoft-365-copilot.webp" width="160" alt="Microsoft 365 Copilot" />
   <br /><br />
-  <strong>every major copilot incident traces the same curve</strong>
+  <strong>every major copilot incident is a cross-boundary trust failure</strong>
 </td>
 <td width="58%" valign="top">
   <a href="https://freyzo.github.io/deep-xpia/"><img src="docs/images/dda-chart.gif" alt="DDA chart: -35pts detection accuracy drop from depth 2 to depth 5" width="100%" /></a>
@@ -25,7 +25,7 @@
 </tr>
 </table>
 
-Every significant Microsoft 365 Copilot security incident in the past year wasn't a bad prompt. It was a cross-boundary trust failure between email, documents, SharePoint, Teams, agents, tools, and memory. Each one maps directly to the depth-dependent accuracy (DDA) degradation that deep-xpia benchmarks.
+Every significant Microsoft 365 Copilot security incident in the past year wasn't a bad prompt. It was a cross-boundary trust failure between email, documents, SharePoint, Teams, agents, tools, and memory. deep-xpia benchmarks exactly those cross-boundary failures, and its live run found the sharpest one sits at the tool/registry trust boundary (DXPIA-008), upstream of where prompt-stream defenses can see.
 
 | Incident | CVE / Ref | DXPIA Class | Depth | Alignment |
 |---|---|---|---|---|
@@ -35,7 +35,7 @@ Every significant Microsoft 365 Copilot security incident in the past year wasn'
 | **Email summary injection** | multiple researchers, 2024-2025 | DXPIA-007 | deep | medium |
 | **Copilot Studio info leak** | [CVE-2024-43610](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43610) | DXPIA-005 | medium | high |
 
-The pattern: **risk scales with delegation depth, not prompt complexity.** Single-agent defenses miss the problem entirely. By hop 3, the injection has been rephrased by intermediate agents into natural, policy-compliant language. Detection sees nothing wrong because nothing looks wrong.
+The pattern: **risk tracks the trust boundary an injection enters from, not the hop count.** Single-agent defenses miss the problem entirely, and in the live run even all five defenses stacked failed on registry injection, which enters before any prompt is processed. (Note: the "Depth" column below is the attack's structural depth, not a claim that detection degrades with depth, the live data did not support that, see [the finding](#the-finding).)
 
 > **[See the interactive breakdown with DDA charts, defense heatmaps, and intent laundering visualization →](https://freyzo.github.io/deep-xpia/#copilot)**
 
@@ -47,23 +47,31 @@ The pattern: **risk scales with delegation depth, not prompt complexity.** Singl
 
 One injection. Three agents. Zero alerts.
 
-deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains. 300 attack cases. 8 attack patterns. 5 defenses measured. Two headline findings: **(1) detection accuracy drops 60 points as injections propagate from depth 2 to depth 5** (DDA metric), and **(2) broader context accumulation correlates with lower detection rates** (CAS metric). For DXPIA-006 (intent laundering), the injection quality _improves_ as it propagates -- intermediate agents strip detection markers and rephrase the payload as natural output. DXPIA-008 (registry injection) shows that poisoned MCP manifests bypass all prompt-stream defenses entirely.
+deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains: 300 cases, 8 attack patterns, 5 defenses. The numbers below are **live-measured** (Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026), not simulated.
 
-```
-depth 2  ████████████████████████████████████░░░░░░░░░░░░░░  72%
-depth 3  ██████████████████████████████░░░░░░░░░░░░░░░░░░░░  58%
-depth 4  ████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  31%
-depth 5  ██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  12%
-         detection accuracy (intent verification, by hop depth)
-```
+| Config | ASR | TPR | FPR |
+|---|---|---|---|
+| none (baseline) | 0.69 | 0.00 | 0.00 |
+| intent verification | 0.55 | 0.23 | 0.01 |
+| all 5 defenses | 0.12 | 0.77 | 0.31 |
 
-This is what separates deep-xpia from single-agent XPIA tools like mcp-scan or promptfoo: it measures what happens when injections cross delegation boundaries. The Copilot incidents above aren't exceptions -- they're the predicted outcome of the DDA curve at production scale.
+Three things the live data actually shows:
+
+1. **Undefended, 69% of multi-hop injections succeed.** No single defense closes the gap: intent verification alone catches 23% (at a clean 1% false-positive rate). Stacking all five drops attack success to 12%, but the false-positive rate climbs to 31%. There is a real precision/recall wall here, not a free lunch.
+
+2. **The blind spot is the trust boundary, not depth.** Every depth-1 case is DXPIA-008 registry injection, and it evades *all five defenses stacked* (TPR 0.00 at depth 1). The injection enters at tool-discovery time, upstream of where prompt-stream defenses operate. Position relative to the trust boundary predicts compromise; hop count does not.
+
+3. **The depth-decay hypothesis did not replicate.** An earlier simulation (see below) modeled detection falling with depth. Measured live, intent-verification detection by depth is flat and noisy (0.20 / 0.19 / 0.25 / 0.38 / 0.18), and with all defenses it *rises* with depth, because deeper buckets are dominated by attack types the defenses handle well. Depth is confounded with attack type, so it is not the causal variable. The clean "drops 60 points" curve was a property of the model, not the world.
+
+> The headline changed once it met live data. That is the point of running it live. The simulated baseline below is kept as an illustrative prior, clearly labeled, not as a result.
+
+This is what separates deep-xpia from single-agent XPIA tools like mcp-scan or promptfoo: it measures what happens when injections cross delegation boundaries, and it reports what the measurement says even when that contradicts the original hypothesis.
 
 ## why this exists
 
 84% of organizations can't pass a compliance audit on agent behavior. Only 24% have visibility into agent-to-agent communication. Single-agent XPIA tools (mcp-scan, promptfoo) don't measure what happens when injections cross delegation boundaries.
 
-[ACIArena](https://arxiv.org/abs/2604.07775) benchmarks general cascading injection across 6 frameworks but doesn't focus on confused deputy patterns or measure depth-dependent detection. [SentinelAgent](https://arxiv.org/abs/2604.02767) formalizes delegation properties but has no OSS implementation. Neither measures how detection degrades with hop depth. deep-xpia fills that gap with a confused-deputy-focused benchmark and a novel depth-dependent accuracy (DDA) metric.
+[ACIArena](https://arxiv.org/abs/2604.07775) benchmarks general cascading injection across 6 frameworks but doesn't focus on confused deputy patterns. [SentinelAgent](https://arxiv.org/abs/2604.02767) formalizes delegation properties but has no OSS implementation. deep-xpia fills that gap with a confused-deputy-focused benchmark, a depth-dependent accuracy (DDA) metric, and a live harness that measures defenses against real model output rather than assuming their effect. In this run the DDA metric's headline use was to *falsify* a depth-decay hypothesis, which is exactly what a metric is for.
 
 ## quickstart
 
@@ -166,19 +174,41 @@ if result.truncated:
 
 Full taxonomy with literature sources: [taxonomy/taxonomy.yaml](taxonomy/taxonomy.yaml)
 
-## results (simulated baseline, N=5 per case)
+## results
+
+### live (measured)
+
+Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent-verify`, and `all` have real defense primitives wired into the live path; `scope`, `dlp`, and `context-budget` are not yet implemented in live mode and error rather than fake a number.
+
+| Config | ASR | TPR | FPR |
+|---|---|---|---|
+| none (baseline) | 0.69 | 0.00 | 0.00 |
+| intent verification | 0.55 | 0.23 | 0.01 |
+| all defenses | 0.12 | 0.77 | 0.31 |
+
+Live TPR by taxonomy, all defenses: DXPIA-006 1.00, DXPIA-003 0.92, DXPIA-001 0.84, DXPIA-007 0.84, DXPIA-004 0.76, DXPIA-002 0.72, DXPIA-005 0.64, **DXPIA-008 0.40** (and 0.00 at depth 1). Registry injection is the hardest case even with everything stacked, consistent with it entering upstream of the defenses.
+
+Reproduce:
+
+```bash
+DEEPXPIA_LIVE=1 deepxpia bench run --defense none          --n-runs 1 --output live_full_none.jsonl
+DEEPXPIA_LIVE=1 deepxpia bench run --defense intent-verify --n-runs 1 --output live_full_intent.jsonl
+DEEPXPIA_LIVE=1 deepxpia bench run --defense all           --n-runs 1 --output live_full_all.jsonl
+```
+
+### simulated baseline (illustrative prior, not a measurement)
+
+These numbers come from per-pattern priors in the runner, used for cost-free, deterministic harness testing. They are **not** measured and should not be cited as results. They are kept only to show the hypothesis the live run was designed to test, and which it did not confirm (see [the finding](#the-finding)).
 
 | Defense | ASR | TPR | FPR | DXPIA-001 TPR | DXPIA-006 TPR | DXPIA-008 TPR |
 |---|---|---|---|---|---|---|
 | None | 0.87 | 0.05 | 0.05 | 0.05 | 0.05 | 0.05 |
-| Intent verify | 0.52 | 0.57 | 0.15 | **0.82** | **0.38** | 0.55 |
+| Intent verify | 0.52 | 0.57 | 0.15 | 0.82 | 0.38 | 0.55 |
 | Taint | 0.64 | 0.53 | 0.08 | 0.35 | 0.32 | 0.10 |
 | Scope tokens | 0.66 | 0.38 | 0.05 | 0.20 | 0.22 | 0.15 |
 | DLP | 0.71 | 0.33 | 0.10 | 0.25 | 0.28 | 0.20 |
 | Context budget | 0.72 | 0.30 | 0.12 | 0.15 | 0.42 | 0.10 |
-| All combined | 0.36 | 0.76 | 0.18 | **0.90** | **0.52** | **0.70** |
-
-Intent verification is the strongest single defense at 0.82 TPR on session smuggling. But against intent laundering (DXPIA-006), it drops to 0.38. Registry injection (DXPIA-008) bypasses all prompt-stream defenses - only `verify_tool_metadata()` catches it (0.55 TPR), and only because it extends the defense perimeter to tool metadata. Context budget is the newest defense; it constrains the blast radius of context accumulation attacks but has limited effect on attacks that don't go through the retrieval pipeline. Layering all 5 defenses brings DXPIA-006 detection to 0.52 and DXPIA-008 to 0.70.
+| All combined | 0.36 | 0.76 | 0.18 | 0.90 | 0.52 | 0.70 |
 
 Full results and failure analysis: [results/](results/)
 
