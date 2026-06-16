@@ -49,11 +49,11 @@ const TAXONOMY = [
 ];
 
 const COPILOT = [
-  { name: "EchoLeak", cve: "CVE-2025-32711", dxpia: "DXPIA-006", dname: "Intent Laundering", depth: 4, align: "9/10", detail: "Zero-click attack. Crafted email triggered multi-hop trust chain ending in sensitive data exfiltration. Bypassed Microsoft's XPIA classifier via laundering across agent hops. First production-scale proof that XPIA becomes agent compromise, not prompt manipulation." },
-  { name: "Copilot Studio exfil", cve: "", dxpia: "DXPIA-001", dname: "Session Smuggling", depth: 3, align: "9/10", detail: "Copilot Studio agent induced via prompt injection to leak customer data through email responses. Classic instruction piggyback inside a legitimate delegation response — no abnormal channel required." },
-  { name: "Reprompt attack", cve: "", dxpia: "DXPIA-004", dname: "Chain Re-routing", depth: 2, align: "8/10", detail: "URL parameter → Copilot → sensitive data retrieval → external transmission. Model failed to distinguish user intent from attacker-supplied context. Patched by Microsoft." },
-  { name: "Email summary abuse", cve: "", dxpia: "DXPIA-007", dname: "Delayed Trigger", depth: 2, align: "8/10", detail: "Attacker email manipulates AI-generated summary to create phishing opportunities. The AI becomes a trust amplifier — trust laundering through the delegation boundary." },
-  { name: "Copilot Studio IPI", cve: "CVE-2026-21520", dxpia: "DXPIA-005", dname: "Scope Escalation", depth: 3, align: "7/10", detail: "Indirect injection vulnerability survived the chatbot→agent transition. Confirms the thesis: agency amplifies risk. Disclosed by Capsule Security, patched by Microsoft." },
+  { name: "EchoLeak", cve: "CVE-2025-32711", dxpia: "DXPIA-006", dname: "Intent Laundering", depth: 4, detail: "Zero-click attack. Crafted email triggered multi-hop trust chain ending in sensitive data exfiltration. Bypassed Microsoft's XPIA classifier via laundering across agent hops. First production-scale proof that XPIA becomes agent compromise, not prompt manipulation." },
+  { name: "Copilot Studio exfil", cve: "", dxpia: "DXPIA-001", dname: "Session Smuggling", depth: 3, detail: "Copilot Studio agent induced via prompt injection to leak customer data through email responses. Classic instruction piggyback inside a legitimate delegation response — no abnormal channel required." },
+  { name: "Reprompt attack", cve: "", dxpia: "DXPIA-004", dname: "Chain Re-routing", depth: 2, detail: "URL parameter → Copilot → sensitive data retrieval → external transmission. Model failed to distinguish user intent from attacker-supplied context. Patched by Microsoft." },
+  { name: "Email summary abuse", cve: "", dxpia: "DXPIA-007", dname: "Delayed Trigger", depth: 2, detail: "Attacker email manipulates AI-generated summary to create phishing opportunities. The AI becomes a trust amplifier — trust laundering through the delegation boundary." },
+  { name: "Copilot Studio IPI", cve: "CVE-2026-21520", dxpia: "DXPIA-005", dname: "Scope Escalation", depth: 3, detail: "Indirect injection vulnerability survived the chatbot→agent transition. Confirms the thesis: agency amplifies risk. Disclosed by Capsule Security, patched by Microsoft." },
 ];
 
 const LAUNDERING_HOPS = [
@@ -466,7 +466,6 @@ function CopilotTable() {
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ fontFamily: C.mono, fontSize: 11, color: C.red }}>{inc.dxpia}</span>
                 <span style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, background: C.border, padding: "2px 6px", borderRadius: 3 }}>depth {inc.depth}</span>
-                <span style={{ fontFamily: C.mono, fontSize: 11, color: C.green, fontWeight: 600 }}>{inc.align}</span>
               </div>
             </div>
             {open === i && (
