@@ -14,13 +14,22 @@ HONEST LIMITATION:
   Scope tokens prevent privilege escalation but not intent drift within
   authorized scope. An agent authorized to return {text} can smuggle action
   instructions as text. Scope enforcement is necessary but not sufficient.
+
+INTEGRITY:
+  token_id is an unkeyed hash of public fields, so anyone can mint or edit a
+  token. With a key, ScopeTokenEnforcer signs each token with HMAC-SHA256
+  over its fields and its parent's signature (a chain, in the spirit of
+  attenuated credentials; cf. Authenticated Delegation, arXiv:2501.09674) and
+  rejects tokens whose signature does not verify. Without a key it behaves as
+  before (unsigned; simulation only).
 """
 
 from __future__ import annotations
 
 import hashlib
+import hmac
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 
 @dataclass(frozen=True)
@@ -38,6 +47,14 @@ class DelegationToken:
     token_id: str = field(init=False)
     issued_at: float = field(default_factory=time.time)
     depth: int = 0
+    parent_signature: str = ""
+    signature: str = ""  # HMAC-SHA256 hex when issued by a keyed enforcer; "" = unsigned
+
+    def signing_payload(self) -> bytes:
+        return "|".join([
+            self.issuer, self.recipient, ",".join(sorted(self.permissions)), self.parent_token_id or "",
+            repr(self.issued_at), str(self.depth), self.parent_signature,
+        ]).encode()
 
     def __post_init__(self) -> None:
         payload = f"{self.issuer}:{self.recipient}:{sorted(self.permissions)}:{self.issued_at}"
@@ -90,17 +107,31 @@ class ScopeTokenEnforcer:
         violation = enforcer.check_action(1, child, "research_agent", "execute_trade")
     """
 
-    def __init__(self) -> None:
+    def __init__(self, key: bytes | None = None) -> None:
         self.violations: list[TokenViolation] = []
+        self._key = key
+
+    def _sign(self, token: DelegationToken) -> DelegationToken:
+        if self._key is None:
+            return token
+        mac = hmac.new(self._key, token.signing_payload(), hashlib.sha256).hexdigest()
+        return replace(token, signature=mac)
+
+    def verify(self, token: DelegationToken) -> bool:
+        """True if the token was signed with this enforcer's key and not modified (always True unkeyed)."""
+        if self._key is None:
+            return True
+        expected = hmac.new(self._key, token.signing_payload(), hashlib.sha256).hexdigest()
+        return bool(token.signature) and hmac.compare_digest(expected, token.signature)
 
     def issue_root(self, issuer: str, permissions: set[str]) -> DelegationToken:
         """Issue a root token for the user -> orchestrator delegation."""
-        return DelegationToken(
+        return self._sign(DelegationToken(
             issuer="user",
             recipient=issuer,
             permissions=frozenset(permissions),
             parent_token_id=None,
-        )
+        ))
 
     def delegate(
         self,
@@ -110,9 +141,13 @@ class ScopeTokenEnforcer:
     ) -> DelegationToken:
         """Attenuate parent token for a sub-delegation.
 
-        Raises PermissionError if permissions exceed parent scope.
+        Raises PermissionError if permissions exceed parent scope or, with a
+        key, if the parent token does not verify.
         """
-        return parent.attenuate(recipient, permissions)
+        if not self.verify(parent):
+            raise PermissionError("parent token signature does not verify")
+        child = parent.attenuate(recipient, permissions)
+        return self._sign(replace(child, parent_signature=parent.signature))
 
     def check_action(
         self,
@@ -122,6 +157,11 @@ class ScopeTokenEnforcer:
         action: str,
     ) -> TokenViolation | None:
         """Check whether an agent is trying to perform an action outside its token scope."""
+        if not self.verify(token):
+            v = TokenViolation(hop=hop, agent=agent, action=action, token=token,
+                               reason="Token signature does not verify (forged or modified)")
+            self.violations.append(v)
+            return v
         if not token.verify_recipient(agent):
             v = TokenViolation(
                 hop=hop,

@@ -94,3 +94,48 @@ def test_token_is_immutable() -> None:
     token = ScopeTokenEnforcer().issue_root("orchestrator", {"read"})
     with pytest.raises(dataclasses.FrozenInstanceError):
         token.permissions = frozenset({"read", "write"})  # type: ignore[misc]
+
+
+class TestSignedTokens:
+    KEY = b"test-key"
+
+    def test_signed_chain_verifies(self) -> None:
+        from deep_xpia.defenses.delegation_token import ScopeTokenEnforcer
+
+        enf = ScopeTokenEnforcer(key=self.KEY)
+        root = enf.issue_root("orchestrator", {"read_data", "summarize", "delegate"})
+        child = enf.delegate(root, "research_agent", {"read_data"})
+        assert root.signature and child.signature and child.parent_signature == root.signature
+        assert enf.verify(root) and enf.verify(child)
+        assert enf.check_action(1, child, "research_agent", "read_data") is None
+
+    def test_widened_token_is_rejected(self) -> None:
+        from dataclasses import replace
+
+        from deep_xpia.defenses.delegation_token import ScopeTokenEnforcer
+
+        enf = ScopeTokenEnforcer(key=self.KEY)
+        child = enf.delegate(enf.issue_root("o", {"read_data", "delegate"}), "r", {"read_data"})
+        forged = replace(child, permissions=frozenset({"read_data", "execute_trade"}))
+        v = enf.check_action(1, forged, "r", "execute_trade")
+        assert v is not None and "signature" in v.reason
+
+    def test_other_key_and_unsigned_tokens_are_rejected(self) -> None:
+        from deep_xpia.defenses.delegation_token import DelegationToken, ScopeTokenEnforcer
+
+        mine, theirs = ScopeTokenEnforcer(key=self.KEY), ScopeTokenEnforcer(key=b"other")
+        token = theirs.issue_root("o", {"read_data"})
+        assert not mine.verify(token)
+        unsigned = DelegationToken(issuer="user", recipient="o", permissions=frozenset({"read_data"}), parent_token_id=None)
+        assert not mine.verify(unsigned)
+        import pytest
+
+        with pytest.raises(PermissionError):
+            mine.delegate(token, "r", {"read_data"})
+
+    def test_unkeyed_enforcer_keeps_old_behaviour(self) -> None:
+        from deep_xpia.defenses.delegation_token import ScopeTokenEnforcer
+
+        enf = ScopeTokenEnforcer()
+        root = enf.issue_root("o", {"read_data"})
+        assert root.signature == "" and enf.verify(root)
