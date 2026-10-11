@@ -7,7 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 109 passing](https://img.shields.io/badge/tests-109_passing-brightgreen.svg)](tests/)
+[![Tests: 109 passing](https://img.shields.io/badge/tests-124_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -190,7 +190,7 @@ deep-xpia/
   taxonomy/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
-  tests/            109 tests
+  tests/            124 tests
 ```
 
 ## contributing
