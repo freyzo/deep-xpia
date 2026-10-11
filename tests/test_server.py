@@ -44,3 +44,14 @@ def test_memory_poisoning_taint_defense_detects() -> None:
         events = _stream(client, "memory_poisoning", "?defense=taint")
     assert any(e.get("ground_truth_label") == "detected" for e in events)
     assert events[-1]["attack_succeeded"] is False
+
+
+def test_closed_websocket_leaves_no_connection_entry() -> None:
+    app = create_app()
+    client = TestClient(app)
+    with client.websocket_connect("/ws/abc"):
+        pass
+    endpoint = next(r for r in app.routes if getattr(r, "path", "") == "/ws/{chain_id}")
+    closure = dict(zip(endpoint.endpoint.__code__.co_freevars,
+                       (c.cell_contents for c in endpoint.endpoint.__closure__ or ())))
+    assert "abc" not in closure["_connections"]

@@ -41,6 +41,13 @@ def create_app() -> FastAPI:
     _connections: dict[str, list[WebSocket]] = {}
     _tasks: set[asyncio.Task[None]] = set()
 
+    def _drop(chain_id: str, ws: WebSocket) -> None:
+        conns = _connections.get(chain_id, [])
+        if ws in conns:
+            conns.remove(ws)
+        if not conns:
+            _connections.pop(chain_id, None)  # don't keep one empty list per finished chain
+
     async def broadcast(chain_id: str, event: dict[str, Any]) -> None:
         dead = []
         for ws in _connections.get(chain_id, []):
@@ -49,7 +56,7 @@ def create_app() -> FastAPI:
             except Exception:
                 dead.append(ws)
         for ws in dead:
-            _connections.get(chain_id, []).remove(ws)
+            _drop(chain_id, ws)
 
     @app.websocket("/ws/{chain_id}")
     async def ws_endpoint(websocket: WebSocket, chain_id: str) -> None:
@@ -59,9 +66,7 @@ def create_app() -> FastAPI:
             while True:
                 await websocket.receive_text()  # keep alive
         except WebSocketDisconnect:
-            conns = _connections.get(chain_id, [])
-            if websocket in conns:
-                conns.remove(websocket)
+            _drop(chain_id, websocket)
 
     @app.get("/api/scenarios")
     async def list_scenarios() -> JSONResponse:

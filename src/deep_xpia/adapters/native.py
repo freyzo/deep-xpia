@@ -72,7 +72,7 @@ class NativeAdapter:
         agent_outputs: list[dict[str, Any]] = []
         retrieval_log: list[dict[str, Any]] = []
         attack_success = False
-        detected = False
+        detected = False  # the native harness applies no defenses, so nothing is detected
         propagation_depth = 0
 
         current_input = user_input
