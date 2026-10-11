@@ -131,7 +131,7 @@ class SessionSmugglingPipeline:
         """Returns True if defense blocks this hop (detected)."""
         if self.defense in ("intent_verify", "all"):
             threshold = 0.5
-            if drift_score > threshold:
+            if drift_score >= threshold:  # same comparison as IntentVerifier
                 return True
         return False
 
