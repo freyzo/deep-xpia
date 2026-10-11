@@ -5,6 +5,23 @@
 taxonomy_version: "2.0.0"
 project: deep-xpia
 owasp_reference: "OWASP Top 10 for Agentic Applications 2026 (published 2025-12-09); owasp_agentic lists primary first"
+sentinelagent_reference:
+  source: "SentinelAgent, arXiv:2604.02767, Sec. III-B (P1-P5) and III-C (P6-P7)"
+  url: https://arxiv.org/abs/2604.02767
+  accessed: 2026-10-11
+  properties:
+    P1: authority_monotonic_narrowing
+    P2: intent_entailment_preservation
+    P3: policy_conjunction_preservation
+    P4: forensic_reconstructibility
+    P5: bounded_cascade_containment
+    P6: scope_action_conformance
+    P7: output_schema_conformance
+  note: >
+    Until 2026-10-11 this file used P3 for forensic reconstructibility, P4 for
+    cascade containment and a P5 "tool_integrity" property the paper does not
+    define; the v2 dataset carries those ids (errata:
+    results/reanalysis/v2_property_errata.md).
 depth_definition: >
   depth = number of agent-to-agent delegation edges traversed
   (topology.hop_count); the user -> first agent step is not counted.
@@ -31,7 +48,7 @@ attacks:
       ASI02: tool misuse and exploitation (executor runs the smuggled tool action)
     delegation_properties_violated:
       - id: P2
-        name: intent_preservation
+        name: intent_entailment_preservation
         detail: "Response semantics diverge from delegated intent"
     confused_deputies: 2
     innocent_deputies: 1
@@ -66,6 +83,7 @@ attacks:
       - id: P6
         name: scope_action_conformance
         detail: "Actions taken based on poisoned memory violate original scope"
+        fit_note: "proposal, pending review: P6 covers calls outside the tool manifest; poisoned memory usually drives in-manifest calls, so P2 may fit better"
     confused_deputies: 2
     reference_scenario: src/deep_xpia/scenarios/memory_poisoning/
     sources:
@@ -93,8 +111,9 @@ attacks:
       ASI02: tool misuse and exploitation (tools are the execution surface)
     delegation_properties_violated:
       - id: P1
-        name: authority_narrowing
+        name: authority_monotonic_narrowing
         detail: "Chain as a whole has more authority than any individual hop"
+        fit_note: "proposal, pending review: the cascade aspect may also map to P5 (bounded cascade containment)"
     confused_deputies: 3
     reference_scenario: null  # no dedicated scenario; src/deep_xpia/scenarios/intent_laundering/ (DXPIA-006) also traverses a 3-hop cascade
     sources:
@@ -121,8 +140,8 @@ attacks:
       ASI01: agent goal hijack (orchestration goal/topology redirected)
       ASI07: insecure inter-agent communication (re-route arrives as an agent message)
     delegation_properties_violated:
-      - id: P4
-        name: cascade_containment
+      - id: P5
+        name: bounded_cascade_containment
         detail: "Injection modifies which agents are in the cascade"
     confused_deputies: 1
     sources:
@@ -149,7 +168,7 @@ attacks:
       ASI03: identity and privilege abuse (delegator borrows delegatee privilege)
     delegation_properties_violated:
       - id: P1
-        name: authority_narrowing
+        name: authority_monotonic_narrowing
         detail: "Delegator effectively gains authority it does not hold"
     confused_deputies: 1
     sources:
@@ -178,7 +197,7 @@ attacks:
       ASI07: insecure inter-agent communication (payload rewritten in agent messages)
     delegation_properties_violated:
       - id: P2
-        name: intent_preservation
+        name: intent_entailment_preservation
         detail: "Laundered instruction passes semantic similarity checks"
     confused_deputies: 2
     key_finding: |
@@ -213,7 +232,7 @@ attacks:
       ASI06: memory & context poisoning (dormant injection as poisoned future state)
       ASI01: agent goal hijack (trigger later redirects an agent's goal)
     delegation_properties_violated:
-      - id: P3
+      - id: P4
         name: forensic_reconstructibility
         detail: "Dormant injection is hard to attribute to original source"
     confused_deputies: 2
@@ -242,10 +261,12 @@ attacks:
     owasp_detail:
       ASI04: agentic supply chain vulnerabilities (malicious tool enters via registry)
       ASI01: agent goal hijack (tool description redirects the agent)
-    delegation_properties_violated:
-      - id: P5
-        name: tool_integrity
-        detail: "Tool metadata is trusted without content verification"
+    delegation_properties_violated: []
+    sentinelagent_note: >
+      No direct counterpart in SentinelAgent P1-P7: P6 checks that each call
+      appears in the agent's tool manifest, not whether the manifest content is
+      trustworthy. The gap DXPIA-008 measures: tool metadata is trusted without
+      content verification.
     confused_deputies: 1
     innocent_deputies: 1
     confused_deputy_roles:

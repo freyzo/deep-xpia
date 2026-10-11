@@ -105,6 +105,13 @@ internal:
     artifact: tests/test_doc_consistency.py
     status: changed
     note: "were 3/3/4 under an inconsistent definition; depth := delegation edges"
+  - id: L17
+    claim: "DXPIA -> SentinelAgent property mapping (taxonomy delegation_properties_violated, dataset ground_truth.delegation_property_violated)"
+    location: [taxonomy/taxonomy.yaml, src/deep_xpia/bench/generator.py, deepxpiabench-v2.jsonl]
+    artifact: results/reanalysis/v2_property_errata.md
+    command: "python results/reanalysis/v2_property_errata.py"
+    status: corrected
+    note: "renumbered to arXiv:2604.02767 (Sec. III-B/C): DXPIA-004 P4->P5, DXPIA-007 P3->P4, DXPIA-008 P5 ('tool_integrity', not in the paper) -> none; 75 v2 cases keep the old ids (immutable file, see errata). Fit of DXPIA-002 (P6) and DXPIA-003 (P1) flagged for review in taxonomy fit_note"
 
 external:
   - id: arXiv:2604.07775
@@ -118,7 +125,7 @@ external:
     url: https://arxiv.org/abs/2604.02767
     accessed: 2026-10-10
     status: corrected
-    note: "README said 'ships no OSS implementation'; paper states code is open source but links no repository"
+    note: "README said 'ships no OSS implementation'; paper states code is open source but links no repository. Property names P1-P7 re-checked 2026-10-11 (Sec. III-B/C); repo numbering corrected (L17)"
   - id: arXiv:2503.12188
     what: "Triedman, Jha, Shmatikov: MAS execute arbitrary malicious code; laundering requests through agents changes their presentation (Sec. 4)"
     url: https://arxiv.org/abs/2503.12188

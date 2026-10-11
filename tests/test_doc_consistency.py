@@ -65,3 +65,24 @@ def test_owasp_mapping_matches_taxonomy_everywhere() -> None:
         assert list(cov) == ids and cov[ids[0]] == "P", tid
         for asi in ids:
             assert tid in mapping["owasp_agentic_top10"][asi]["dxpia_attacks"], (tid, asi)
+
+
+def test_sentinelagent_properties_match_paper() -> None:
+    """Property ids/names follow arXiv:2604.02767 numbering (taxonomy sentinelagent_reference)."""
+    from deep_xpia.bench.generator import TAXONOMY_PROPERTY
+    from deep_xpia.bench.schema import TaxonomyID
+    from deep_xpia.scenarios.intent_laundering.ground_truth import make_bench_cases as il
+    from deep_xpia.scenarios.memory_poisoning.ground_truth import make_bench_cases as mp
+    from deep_xpia.scenarios.session_smuggling.ground_truth import make_bench_cases as ss
+
+    ref = yaml.safe_load((ROOT / "taxonomy/taxonomy.yaml").read_text())["sentinelagent_reference"]["properties"]
+    assert list(ref) == [f"P{i}" for i in range(1, 8)]
+    for tid, attack in TAXONOMY.items():
+        props = attack["delegation_properties_violated"]
+        for p in props:
+            assert ref[p["id"]] == p["name"], (tid, p)
+        assert TAXONOMY_PROPERTY[TaxonomyID(tid)] == (props[0]["id"] if props else None), tid
+    for make in (ss, mp, il):
+        for case in make():
+            assert case.taxonomy_id is not None
+            assert case.ground_truth.delegation_property_violated == TAXONOMY_PROPERTY[case.taxonomy_id]

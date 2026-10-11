@@ -60,16 +60,17 @@ TAXONOMY_DEPTH: dict[TaxonomyID, tuple[int, int]] = {
     TaxonomyID.DXPIA_008: (1, 3),
 }
 
-# Taxonomy -> SentinelAgent property violated
-TAXONOMY_PROPERTY: dict[TaxonomyID, str] = {
+# Taxonomy -> SentinelAgent property violated (arXiv:2604.02767 numbering, see
+# taxonomy.yaml sentinelagent_reference). None: no counterpart in P1-P7.
+TAXONOMY_PROPERTY: dict[TaxonomyID, str | None] = {
     TaxonomyID.DXPIA_001: "P2",
     TaxonomyID.DXPIA_002: "P6",
     TaxonomyID.DXPIA_003: "P1",
-    TaxonomyID.DXPIA_004: "P4",
+    TaxonomyID.DXPIA_004: "P5",
     TaxonomyID.DXPIA_005: "P1",
     TaxonomyID.DXPIA_006: "P2",
-    TaxonomyID.DXPIA_007: "P3",
-    TaxonomyID.DXPIA_008: "P5",
+    TaxonomyID.DXPIA_007: "P4",
+    TaxonomyID.DXPIA_008: None,
 }
 
 # Topology constraints per taxonomy
