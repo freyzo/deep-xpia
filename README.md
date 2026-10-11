@@ -148,17 +148,17 @@ DEEPXPIA_LIVE=1 deepxpia bench run --defense all           --n-runs 1 --output l
 
 ### simulated baseline (illustrative prior, not a measurement)
 
-These numbers come from per-pattern priors in the runner, used for cost-free, deterministic harness testing. They are **not** measured and should not be cited as results. They are kept only to show the hypothesis the live run was designed to test, and which it did not confirm (see [the finding](#the-finding)).
+These numbers come from per-pattern priors in the runner, used for cost-free, deterministic harness testing. Dataset v2, n=5 runs/case; regenerate with `results/simulated/regenerate.sh` (full tables with CIs in [results/simulated/](results/simulated/)). They are **not** measured and should not be cited as results. They are kept only to show the hypothesis the live run was designed to test, and which it did not confirm (see [the finding](#the-finding)).
 
 | Defense | ASR | TPR | FPR | DXPIA-001 TPR | DXPIA-006 TPR | DXPIA-008 TPR |
 |---|---|---|---|---|---|---|
-| None | 0.87 | 0.05 | 0.05 | 0.05 | 0.05 | 0.05 |
-| Intent verify | 0.52 | 0.57 | 0.15 | 0.82 | 0.38 | 0.55 |
-| Taint | 0.64 | 0.53 | 0.08 | 0.35 | 0.32 | 0.10 |
-| Scope tokens | 0.66 | 0.38 | 0.05 | 0.20 | 0.22 | 0.15 |
-| DLP | 0.71 | 0.33 | 0.10 | 0.25 | 0.28 | 0.20 |
-| Context budget | 0.72 | 0.30 | 0.12 | 0.15 | 0.42 | 0.10 |
-| All combined | 0.36 | 0.76 | 0.18 | 0.90 | 0.52 | 0.70 |
+| None | 0.87 | 0.02 | 0.06 | 0.04 | 0.00 | 0.01 |
+| Intent verify | 0.55 | 0.47 | 0.16 | 0.86 | 0.20 | 0.54 |
+| Taint | 0.64 | 0.37 | 0.09 | 0.38 | 0.11 | 0.03 |
+| Scope tokens | 0.67 | 0.36 | 0.06 | 0.21 | 0.06 | 0.13 |
+| DLP | 0.72 | 0.28 | 0.11 | 0.26 | 0.11 | 0.18 |
+| Context budget | 0.72 | 0.24 | 0.13 | 0.14 | 0.25 | 0.03 |
+| All combined | 0.27 | 0.73 | 0.18 | 0.89 | 0.42 | 0.68 |
 
 Full results and failure analysis: [results/](results/)
 
