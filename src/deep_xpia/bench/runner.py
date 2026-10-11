@@ -284,7 +284,7 @@ class BenchRunner:
 
         def _should_inject(pos: InjectionPosition, hop: int, max_hop: int) -> bool:
             if pos == InjectionPosition.TOOL_METADATA:
-                return hop == 0  # tool metadata injection fires at first hop
+                return False  # enters via the tool manifest (see registry_manifest), not the prompt
             if pos == InjectionPosition.FIRST_HOP:
                 return hop == 0
             if pos == InjectionPosition.LAST_HOP:
@@ -312,13 +312,37 @@ class BenchRunner:
         use_taint = ds in (DefenseState.TAINT, DefenseState.ALL)
         verifier = IntentVerifier(threshold=0.5) if use_intent else None
 
+        # DXPIA-008 registry injection: the poisoned manifest is what the first
+        # agent sees as its tool registry. Prompt-stream defenses never see it;
+        # intent verification also scans tool metadata at registration time.
+        registry_manifest: dict[str, Any] | None = None
+        if injection and injection.position == InjectionPosition.TOOL_METADATA:
+            if not case.tool_metadata:
+                raise ValueError(f"{case.id}: TOOL_METADATA injection without tool_metadata")
+            registry_manifest = case.tool_metadata
+            if verifier is not None:
+                vr = verifier.verify_tool_metadata(
+                    tool_name=registry_manifest.get("name", "unknown"),
+                    description=registry_manifest.get("description", ""),
+                    manifest=registry_manifest,
+                )
+                detected = vr.blocked
+
         prior = ""
         for hop, agent in enumerate(agents[:-1]):  # last agent is executor
+            if detected:  # blocked at tool registration
+                break
             content = build_user_content(hop, prior)
+            system = agent.system_prompt
+            if hop == 0 and registry_manifest is not None:
+                system += (
+                    "\n\nAvailable tools (from the tool registry):\n"
+                    + json.dumps(registry_manifest, indent=2)
+                )
             msg = client.messages.create(
                 model=self.model,
                 max_tokens=512,
-                system=agent.system_prompt,
+                system=system,
                 messages=[{"role": "user", "content": content}],
             )
             output = msg.content[0].text if msg.content else ""
