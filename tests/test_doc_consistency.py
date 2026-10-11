@@ -98,6 +98,10 @@ BANNED_PHRASES = [
     "headline finding",
     "the harder it is to detect",
     "improves as it propagates",
+    "zero alerts",  # the v2 judge and detectors do not support it
+    "69% of multi-hop injections succeed",  # v2 judge rate, not attack success (L1)
+    "drops attack success to 12%",  # same (L3)
+    "does not decay with",  # not established by an equivalence test (L9)
 ]
 
 

@@ -14,7 +14,7 @@ const C = {
   sans: "'IBM Plex Sans',system-ui,sans-serif",
 };
 
-// live-measured (v2): live "all" = intent verification + taint; TPR by
+// live-measured (v2): live "all" = intent verification + keyword taint flag; TPR by
 // published depth label. Depth 1 is entirely DXPIA-008, which the v2 harness
 // injected as a hop-0 prompt (not via the tool manifest).
 const DDA_DATA = [
@@ -76,7 +76,7 @@ const RADIAL_STATUS = {
   "0":  { text: "HOP 1 — Research Agent ingests poisoned document. Drift score: 1.0. Compromised.", col: "#ef4444" },
   "1":  { text: "HOP 2 — Review Agent receives laundered instruction. Drift: 0.0. Passes all checks.", col: "#ef4444" },
   "2d": { text: "HOP 3 — Deploy Agent blocked. Intent verification detected drift 0.73.", col: "#f59e0b" },
-  "2":  { text: "HOP 3 — Deploy Agent executes. Credentials exfiltrated. Zero alerts.", col: "#ef4444" },
+  "2":  { text: "HOP 3 — Deploy Agent executes. Credentials exfiltrated; no detector fired in this scripted run.", col: "#ef4444" },
   "3":  { text: "Memory Store poisoned. Injection persists across session boundaries.", col: "#ef4444" },
   "4":  { text: "Tool registry poisoned — malicious manifest loaded before any prompt.", col: "#ef4444" },
   "5":  { text: "Orchestrator re-routed. Pipeline topology rewritten by attacker.", col: "#ef4444" },
@@ -345,7 +345,7 @@ function DDAChart() {
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 24 }}>
         <span style={{ fontFamily: C.mono, fontSize: 44, fontWeight: 700, color: C.red, lineHeight: 1 }}>0%</span>
-        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>of depth-1 DXPIA-008 cases caught<br />by intent verification + taint<br />(n=10, 95% CI 0-28%)</span>
+        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>of depth-1 DXPIA-008 cases flagged<br />by intent verification + taint flag<br />(n=10, 95% CI 0-28%)</span>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={DDA_DATA} margin={{ top: 10, right: 24, bottom: 0, left: 0 }}>
@@ -360,7 +360,7 @@ function DDAChart() {
         </AreaChart>
       </ResponsiveContainer>
       <p style={{ fontFamily: C.mono, fontSize: 11, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
-        Live-measured (Claude Haiku, 300 cases, n=1/case), by published depth label. Detection does not fall with depth. All 10 depth-1 cases (DXPIA-008) went undetected by intent verification + taint; the v2 harness injected them as hop-0 prompts, not via the tool manifest, so registry injection proper is not yet measured.
+        Live-measured detector fire rate (Claude Haiku 4.5, n=1/case), by published depth label. No bucket falls outside its CI, but the data cannot rule out a decay (equivalence test: results/reanalysis/v2_stats.md), and a run gets one more chance to be flagged at every hop, so this curve rises mechanically. The 10 depth-1 cases (DXPIA-008) were injected as hop-0 prompts, not via the tool manifest, so registry injection proper is not yet measured.
       </p>
     </div>
   );
@@ -540,11 +540,11 @@ export default function DeepXPIA() {
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "72px 24px 40px" }}>
         <div style={{ fontFamily: C.mono, fontSize: 9, color: C.red, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 18 }}>multi-hop cross-prompt injection benchmark</div>
         <h1 style={{ fontFamily: C.mono, fontSize: 44, fontWeight: 700, lineHeight: 1.12, letterSpacing: -1.5, marginBottom: 24 }}>
-          One injection.<br />Three agents.<br /><span style={{ color: C.red }}>Zero alerts.</span>
+          One injection.<br />Many agents.<br /><span style={{ color: C.red }}>Where does it stop?</span>
         </h1>
         <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, maxWidth: 520, marginBottom: 36 }}>
           Single-agent XPIA is studied. The open problem is what happens when the injection crosses delegation boundaries between agents.{" "}
-          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, measured live. Detection did not fall with delegation depth.
+          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap: 300 cases, 8 attack patterns, measured live, with an audit of what each measurement means.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", background: C.red, color: "#fff", borderRadius: 6, fontFamily: C.mono, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
@@ -557,7 +557,7 @@ export default function DeepXPIA() {
 
       <div style={{ maxWidth: 780, margin: "0 auto 48px", padding: "0 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-          {[["300", "cases (live)"], ["8", "DXPIA patterns"], ["69%", "land undefended"], ["12%", "with intent + taint"]].map(([n, l]) => (
+          {[["300", "cases (live)"], ["8", "DXPIA patterns"], ["23% / 1%", "flagged / false alarms, intent verification"], ["77% / 31%", "flagged / false alarms, + taint flag"]].map(([n, l]) => (
             <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 10px", textAlign: "center" }}>
               <div style={{ fontFamily: C.mono, fontSize: 24, fontWeight: 700, color: C.red }}>{n}</div>
               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{l}</div>

@@ -133,7 +133,7 @@ def main() -> None:
         "## Reading",
         "",
         "- Intent verification: the slope's 90% CI includes declines of up to 14 points per hop, and no margin",
-        "  was fixed in advance, so 'detection does not decay with depth' is not established by v2.",
+        "  was fixed in advance, so v2 does not establish that detection is stable with depth.",
         "- Intent + taint: run-level detection rises with depth even within taxonomy, but a run gets one more",
         "  chance to be flagged at every hop and the taint flag fires on about half of payload-free hops",
         "  (v2_per_hop.md). A rising curve is expected without any depth effect on the detectors; per-hop",
