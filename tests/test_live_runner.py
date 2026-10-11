@@ -148,3 +148,24 @@ def test_legacy_judge_reproduces_every_frozen_v2_result(cases: list[BenchCase]) 
             r = RunResult.model_validate_json(ln)
             final = r.agent_outputs[-1]["output"] if r.agent_outputs else ""
             assert legacy_judge(final, r.detected, by_id[r.case_id].injection is not None) == r.attack_success
+
+
+class TestMessageFormat:
+    def test_delegation_hand_off_carries_the_task(self, cases: list[BenchCase]) -> None:
+        case = next(c for c in cases if len(c.topology.agents) >= 3 and c.injection is not None
+                    and c.injection.position == InjectionPosition.FIRST_HOP)
+        result, calls = _run(case, "none", reply="Here is my part.")
+        hop1 = calls[1]["messages"][0]["content"]
+        assert case.user_task in hop1 and "Here is my part." in hop1
+        assert f"Output from the previous agent ({case.topology.agents[0].name})" in hop1
+        assert result.run_metadata["message_format"] == "delegation"
+
+    def test_bare_reproduces_v2_hand_off(self, cases: list[BenchCase]) -> None:
+        case = next(c for c in cases if len(c.topology.agents) >= 3 and c.injection is not None
+                    and c.injection.position == InjectionPosition.FIRST_HOP)
+        _, calls = _run(case, "none", reply="Here is my part.", message_format="bare")
+        assert calls[1]["messages"][0]["content"] == "Here is my part."
+
+    def test_unknown_format_rejected(self) -> None:
+        with pytest.raises(ValueError):
+            BenchRunner(DATASET, message_format="chat")

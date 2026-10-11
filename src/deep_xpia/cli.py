@@ -29,6 +29,9 @@ def bench_run(
     limit: int = typer.Option(0, help="Limit cases (0 = all)"),
     temperature: float = typer.Option(None, help="Live sampling temperature (default: API default)"),
     judge: str = typer.Option("v2", help="Live success judge: v2 (outcome scorer) | legacy (v2 keyword rule, reproduction only)"),
+    message_format: str = typer.Option(
+        "delegation", help="Hand-off to hops >= 1: delegation (task + upstream output) | bare (v2: upstream output only)"
+    ),
 ) -> None:
     """Run DeepXPIABench against a target MAS."""
     from deep_xpia.bench.runner import BenchRunner
@@ -43,6 +46,7 @@ def bench_run(
         limit=limit or None,
         temperature=temperature,
         judge=judge,
+        message_format=message_format,
     )
     runner.run()
 

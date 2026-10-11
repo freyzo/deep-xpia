@@ -7,7 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 225 passing](https://img.shields.io/badge/tests-225_passing-brightgreen.svg)](tests/)
+[![Tests: 228 passing](https://img.shields.io/badge/tests-228_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -142,9 +142,11 @@ Live TPR by taxonomy, intent verification + taint flag (n=25 each): DXPIA-006 1.
 Reproduce:
 
 ```bash
-DEEPXPIA_LIVE=1 deepxpia bench run --defense none          --n-runs 1 --output live_full_none.jsonl
-DEEPXPIA_LIVE=1 deepxpia bench run --defense intent-verify --n-runs 1 --output live_full_intent.jsonl
-DEEPXPIA_LIVE=1 deepxpia bench run --defense all           --n-runs 1 --output live_full_all.jsonl
+# v2 harness behaviour: bare hand-offs and the keyword judge (the current defaults are
+# --message-format delegation and --judge v2, the outcome scorer)
+DEEPXPIA_LIVE=1 deepxpia bench run --defense none          --n-runs 1 --message-format bare --judge legacy --output live_full_none.jsonl
+DEEPXPIA_LIVE=1 deepxpia bench run --defense intent-verify --n-runs 1 --message-format bare --judge legacy --output live_full_intent.jsonl
+DEEPXPIA_LIVE=1 deepxpia bench run --defense all           --n-runs 1 --message-format bare --judge legacy --output live_full_all.jsonl
 ```
 
 ### simulated baseline (illustrative prior, not a measurement)
@@ -199,7 +201,7 @@ deep-xpia/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
   paper/            related-work matrix and paper artifacts
-  tests/            225 tests
+  tests/            228 tests
 ```
 
 ## contributing
