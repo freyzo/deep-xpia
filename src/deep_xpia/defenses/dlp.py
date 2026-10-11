@@ -56,7 +56,9 @@ DLP_PATTERNS: dict[str, list[str]] = {
     ],
 }
 
-# Destinations where sensitive data must NEVER appear
+# Destinations where sensitive data must NEVER appear. Matched as substrings of
+# the destination name, so "slack" covers "slack_notifier" and "email" covers
+# "email_assistant" (which holds write_email, i.e. is an egress point).
 PROTECTED_DESTINATIONS = [
     "notification_agent",
     "slack",
