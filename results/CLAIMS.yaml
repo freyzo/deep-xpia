@@ -159,5 +159,5 @@ external:
     what: "ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain Vulnerabilities, ASI05 Unexpected Code Execution, ASI06 Memory & Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue Agents (published 2025-12-09)"
     url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
     accessed: 2026-10-10
-    status: unverifiable
-    note: "official PDF is behind a download form; names consistent across 4 secondary sources. Repo labels wrong (ASI07 used for memory poisoning, etc.). Remap pending gate G3"
+    status: corrected
+    note: "remap applied 2026-10-11 (taxonomy.yaml is the source; owasp_mapping, README, site derived + tested). Names consistent across 4 secondary sources; confirm against the official PDF (behind a download form) before citing"

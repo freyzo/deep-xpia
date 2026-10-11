@@ -46,3 +46,22 @@ def test_scenario_depths_agree() -> None:
         readme = (ROOT / "src/deep_xpia/scenarios" / sid / "README.md").read_text()
         assert int(re.search(r"\*\*Depth:\*\* (\d+)", readme).group(1)) == depth
     assert "depth_definition" in yaml.safe_load((ROOT / "taxonomy/taxonomy.yaml").read_text())
+
+
+def test_owasp_mapping_matches_taxonomy_everywhere() -> None:
+    import re
+
+    readme = (ROOT / "README.md").read_text()
+    site = (ROOT / "dashboard/src/DeepXPIA.jsx").read_text()
+    mapping = yaml.safe_load((ROOT / "taxonomy/owasp_mapping.yaml").read_text())
+    for tid, attack in TAXONOMY.items():
+        ids = attack["owasp_agentic"]
+        assert set(attack["owasp_detail"]) == set(ids), tid
+        row = re.search(rf"^\| {tid} \|.*\| ([^|]+) \|$", readme, re.M)
+        assert row and [x.strip() for x in row.group(1).split(",")] == ids, tid
+        js = re.search(rf'id: "{tid}",[^}}]*?owasp: "([^"]*)"', site)
+        assert js and [x.strip() for x in js.group(1).split(",")] == ids, tid
+        cov = mapping["coverage_matrix"][tid]
+        assert list(cov) == ids and cov[ids[0]] == "P", tid
+        for asi in ids:
+            assert tid in mapping["owasp_agentic_top10"][asi]["dxpia_attacks"], (tid, asi)

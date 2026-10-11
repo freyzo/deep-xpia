@@ -119,13 +119,13 @@ Other primitives follow the same shape: `taint.TaintTracker`, `delegation_token.
 
 | ID | Name | Hop mechanism | Min depth | OWASP |
 |---|---|---|---|---|
-| DXPIA-001 | Session smuggling | instruction piggyback | 2 | ASI02, ASI03 |
-| DXPIA-002 | Memory poisoning | temporal persistence | 2 | ASI07 |
-| DXPIA-003 | Tool chain cascade | data flow cascade | 3 | ASI02, ASI04 |
-| DXPIA-004 | Chain re-routing | control plane injection | 2 | ASI01, ASI03 |
+| DXPIA-001 | Session smuggling | instruction piggyback | 2 | ASI07, ASI02 |
+| DXPIA-002 | Memory poisoning | temporal persistence | 2 | ASI06 |
+| DXPIA-003 | Tool chain cascade | data flow cascade | 3 | ASI08, ASI02 |
+| DXPIA-004 | Chain re-routing | control plane injection | 2 | ASI01, ASI07 |
 | DXPIA-005 | Scope escalation | privilege differential | 2 | ASI03 |
-| DXPIA-006 | Intent laundering | adversarial refinement | 3 | ASI01 |
-| DXPIA-007 | Delayed trigger | conditional activation | 2 | ASI07 |
+| DXPIA-006 | Intent laundering | adversarial refinement | 3 | ASI01, ASI07 |
+| DXPIA-007 | Delayed trigger | conditional activation | 2 | ASI06, ASI01 |
 | DXPIA-008 | Registry injection | trust boundary sideload | 1 | ASI04, ASI01 |
 
 Depth = number of agent-to-agent delegation edges traversed (`topology.hop_count`); the user -> first agent step is not counted.

@@ -4,6 +4,7 @@
 
 taxonomy_version: "2.0.0"
 project: deep-xpia
+owasp_reference: "OWASP Top 10 for Agentic Applications 2026 (published 2025-12-09); owasp_agentic lists primary first"
 depth_definition: >
   depth = number of agent-to-agent delegation edges traversed
   (topology.hop_count); the user -> first agent step is not counted.
@@ -24,10 +25,10 @@ attacks:
     depth_range: [2, 3]
     depth_detail: "inject at hop 1, execute at hop 2-3"
     attack_surface: inter_agent_message
-    owasp_agentic: [ASI02, ASI03]
+    owasp_agentic: [ASI07, ASI02]
     owasp_detail:
-      ASI02: tool misuse (delegatee causes tool action via smuggled instruction)
-      ASI03: excessive agency (executor acts beyond user intent)
+      ASI07: insecure inter-agent communication (instruction rides a delegation response)
+      ASI02: tool misuse and exploitation (executor runs the smuggled tool action)
     delegation_properties_violated:
       - id: P2
         name: intent_preservation
@@ -58,9 +59,9 @@ attacks:
     depth_range: [2, 99]
     depth_detail: "inject in session 1, execute in session N (unbounded)"
     attack_surface: shared_state_memory
-    owasp_agentic: [ASI07]
+    owasp_agentic: [ASI06]
     owasp_detail:
-      ASI07: memory poisoning (shared store contains attacker data)
+      ASI06: memory & context poisoning (shared store contains attacker data)
     delegation_properties_violated:
       - id: P6
         name: scope_action_conformance
@@ -86,10 +87,10 @@ attacks:
     depth_range: [3, 5]
     depth_detail: "inject -> execute -> exfiltrate (minimum 3 hops)"
     attack_surface: external_input_plus_inter_agent
-    owasp_agentic: [ASI02, ASI04]
+    owasp_agentic: [ASI08, ASI02]
     owasp_detail:
-      ASI02: tool misuse
-      ASI04: supply chain (external content as injection vector)
+      ASI08: cascading failures (harm only emerges across the chain)
+      ASI02: tool misuse and exploitation (tools are the execution surface)
     delegation_properties_violated:
       - id: P1
         name: authority_narrowing
@@ -115,10 +116,10 @@ attacks:
     depth_range: [2, 2]
     depth_detail: "inject at agent, re-route at orchestrator (2 hops)"
     attack_surface: agent_profile
-    owasp_agentic: [ASI01, ASI03]
+    owasp_agentic: [ASI01, ASI07]
     owasp_detail:
-      ASI01: prompt injection (manipulates orchestration logic)
-      ASI03: excessive agency (orchestrator acts on attacker-injected topology)
+      ASI01: agent goal hijack (orchestration goal/topology redirected)
+      ASI07: insecure inter-agent communication (re-route arrives as an agent message)
     delegation_properties_violated:
       - id: P4
         name: cascade_containment
@@ -145,7 +146,7 @@ attacks:
     attack_surface: inter_agent_message
     owasp_agentic: [ASI03]
     owasp_detail:
-      ASI03: excessive agency (low-priv agent acts beyond its permissions)
+      ASI03: identity and privilege abuse (delegator borrows delegatee privilege)
     delegation_properties_violated:
       - id: P1
         name: authority_narrowing
@@ -171,9 +172,10 @@ attacks:
     depth_range: [3, 99]
     depth_detail: "inject -> launder -> execute (minimum 3 hops)"
     attack_surface: inter_agent_message
-    owasp_agentic: [ASI01]
+    owasp_agentic: [ASI01, ASI07]
     owasp_detail:
-      ASI01: prompt injection (increasingly natural-looking at each hop)
+      ASI01: agent goal hijack (downstream agents act on the attacker's goal)
+      ASI07: insecure inter-agent communication (payload rewritten in agent messages)
     delegation_properties_violated:
       - id: P2
         name: intent_preservation
@@ -206,9 +208,10 @@ attacks:
     depth_range: [2, 99]
     depth_detail: "2+ hops, time-delayed; unbounded temporal distance"
     attack_surface: external_input_plus_temporal
-    owasp_agentic: [ASI07]
+    owasp_agentic: [ASI06, ASI01]
     owasp_detail:
-      ASI07: memory poisoning (dormant injection as poisoned future state)
+      ASI06: memory & context poisoning (dormant injection as poisoned future state)
+      ASI01: agent goal hijack (trigger later redirects an agent's goal)
     delegation_properties_violated:
       - id: P3
         name: forensic_reconstructibility
@@ -237,8 +240,8 @@ attacks:
     attack_surface: tool_registry_metadata
     owasp_agentic: [ASI04, ASI01]
     owasp_detail:
-      ASI04: supply chain (malicious tool enters via registry)
-      ASI01: prompt injection (tool description contains hidden instructions)
+      ASI04: agentic supply chain vulnerabilities (malicious tool enters via registry)
+      ASI01: agent goal hijack (tool description redirects the agent)
     delegation_properties_violated:
       - id: P5
         name: tool_integrity
