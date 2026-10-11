@@ -9,11 +9,11 @@ from deep_xpia.bench.schema import TaxonomyID
 
 
 def write_results_report(
-    metrics: AggregateMetrics,
-    defense_label: str,
-    output_path: str = "results/deepxpiabench-v1-results.md",
+    all_metrics: dict[str, AggregateMetrics],
+    output_path: str,
 ) -> None:
-    body = format_results_table(metrics, defense_label)
+    """Write the core results table for each defense label."""
+    body = "\n\n".join(format_results_table(m, label) for label, m in all_metrics.items())
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(body)
@@ -21,7 +21,7 @@ def write_results_report(
 
 def write_coverage_matrix(
     all_metrics: dict[str, AggregateMetrics],
-    output_path: str = "results/coverage_matrix.md",
+    output_path: str,
 ) -> None:
     """Write defense x taxonomy coverage matrix."""
     taxonomy_ids = [t.value for t in TaxonomyID]
@@ -47,7 +47,7 @@ def write_coverage_matrix(
 
 def write_depth_analysis(
     all_metrics: dict[str, AggregateMetrics],
-    output_path: str = "results/depth_analysis.md",
+    output_path: str,
 ) -> None:
     """Write DDA (depth-dependent accuracy) analysis."""
     lines = [

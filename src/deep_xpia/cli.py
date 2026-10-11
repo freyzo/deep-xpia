@@ -66,6 +66,43 @@ def bench_generate(
     console.print(f"[green]Generated {n_attack + n_clean} cases -> {output}[/green]")
 
 
+@bench_app.command("report")
+def bench_report(
+    runs: list[str] = typer.Argument(..., help="LABEL=results.jsonl pairs, one per defense"),
+    dataset: str = typer.Option("deepxpiabench-v2.jsonl", help="Dataset the runs used"),
+    out_dir: str = typer.Option("report", help="Output directory (not results/, which is curated)"),
+) -> None:
+    """Write results, coverage-matrix and DDA reports from `bench run` outputs."""
+    from pathlib import Path
+
+    from deep_xpia.bench.metrics import compute_metrics
+    from deep_xpia.bench.report import (
+        write_coverage_matrix,
+        write_depth_analysis,
+        write_results_report,
+    )
+    from deep_xpia.bench.schema import BenchCase, RunResult
+
+    def _jsonl(path: str) -> list[str]:
+        return [ln for ln in Path(path).read_text().splitlines() if ln.strip()]
+
+    cases = [BenchCase.model_validate_json(ln) for ln in _jsonl(dataset)]
+    all_metrics = {}
+    for pair in runs:
+        label, sep, path = pair.partition("=")
+        if not sep or not label or not path:
+            raise typer.BadParameter(f"expected LABEL=path, got {pair!r}")
+        results = [RunResult.model_validate_json(ln) for ln in _jsonl(path)]
+        n_runs = max((r.run_index for r in results), default=0) + 1
+        all_metrics[label] = compute_metrics(cases, results, n_runs)
+
+    out = Path(out_dir)
+    write_results_report(all_metrics, str(out / "results.md"))
+    write_coverage_matrix(all_metrics, str(out / "coverage_matrix.md"))
+    write_depth_analysis(all_metrics, str(out / "depth_analysis.md"))
+    console.print(f"[green]Wrote 3 reports for {', '.join(all_metrics)} -> {out}/[/green]")
+
+
 @app.command()
 def demo() -> None:
     """Launch the interactive chain visualizer."""

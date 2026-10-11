@@ -69,6 +69,9 @@ deepxpia bench run --defense none
 deepxpia bench run --defense intent-verify
 deepxpia bench run --defense context-budget
 deepxpia bench run --defense all
+
+# markdown reports (results, coverage matrix, DDA) from run outputs
+deepxpia bench report none=none.jsonl all=all.jsonl --out-dir report
 ```
 
 ## use as a benchmark

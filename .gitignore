@@ -35,6 +35,7 @@ coverage.xml
 
 # Benchmark outputs (raw result files -- commit summaries, not raw jsonl)
 results/raw_*.jsonl
+report/
 *.jsonl
 !deepxpiabench-v1.jsonl
 !deepxpiabench-v2.jsonl
