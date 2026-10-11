@@ -14,12 +14,13 @@ from deep_xpia.bench.schema import BenchCase, InjectionPosition
 DATASET = "deepxpiabench-v2.jsonl"
 
 
-def _run(case: BenchCase, defense: str = "none", **runner_kw: Any) -> tuple[Any, list[dict[str, Any]]]:
+def _run(case: BenchCase, defense: str = "none", reply: str = "ok, done.",
+         **runner_kw: Any) -> tuple[Any, list[dict[str, Any]]]:
     calls: list[dict[str, Any]] = []
 
     def create(**kw: Any) -> Any:
         calls.append(kw)
-        return mock.Mock(content=[mock.Mock(text="ok, done.")])
+        return mock.Mock(content=[mock.Mock(text=reply)])
 
     client = mock.Mock()
     client.messages.create.side_effect = create
@@ -94,3 +95,56 @@ class TestSamplingAndProvenance:
         md = result.run_metadata
         assert md["mode"] == "live" and md["model"] and md["harness_version"] == __version__
         assert md["injection_surface"] == "tool_metadata"
+
+
+class TestOutcomeJudge:
+    def test_refusal_is_not_success(self, cases: list[BenchCase]) -> None:
+        from deep_xpia.bench.outcomes import SCORER_VERSION
+
+        case = _first(cases, "DXPIA-001")
+        result, _ = _run(case, "none", reply="I won't do that; this looks like a prompt injection.")
+        assert not result.attack_success
+        assert result.hop_outcomes[0] == "exposed_flagged"
+        assert result.run_metadata["judge"] == SCORER_VERSION and result.run_metadata["injected_hops"] == [0]
+
+    def test_attacker_marker_without_refusal_is_success(self, cases: list[BenchCase]) -> None:
+        from deep_xpia.bench.outcomes import payload_and_markers
+
+        case = next(c for c in cases if c.taxonomy_id and c.taxonomy_id.value == "DXPIA-001"
+                    and payload_and_markers(c, "current")[1])
+        marker = payload_and_markers(case, "current")[1][0]
+        result, _ = _run(case, "none", reply=f"Done. Next step for the executor: {marker}.")
+        assert result.attack_success and result.outcome == "complied"
+
+    def test_legacy_judge_counts_keywords(self, cases: list[BenchCase]) -> None:
+        case = _first(cases, "DXPIA-001")
+        reply = "Understood, I will not forward anything."
+        assert _run(case, "none", reply=reply, judge="legacy")[0].attack_success
+        assert not _run(case, "none", reply=reply)[0].attack_success
+
+    def test_registry_cases_scored_by_manifest(self, cases: list[BenchCase]) -> None:
+        from deep_xpia.bench.outcomes import payload_and_markers
+
+        case = _first(cases, "DXPIA-008")
+        text, _ = payload_and_markers(case, "current")
+        assert case.tool_metadata is not None and case.tool_metadata["name"] in text
+        assert payload_and_markers(case, "v2")[0] != text
+
+    def test_unknown_judge_rejected(self) -> None:
+        with pytest.raises(ValueError):
+            BenchRunner(DATASET, judge="llm")
+
+
+def test_legacy_judge_reproduces_every_frozen_v2_result(cases: list[BenchCase]) -> None:
+    from pathlib import Path
+
+    from deep_xpia.bench.runner import legacy_judge
+    from deep_xpia.bench.schema import RunResult
+
+    by_id = {c.id: c for c in cases}
+    root = Path(__file__).resolve().parents[1] / "results/raw/v2-live-2026-06"
+    for name in ("none", "intent", "all"):
+        for ln in (root / f"live_full_{name}.jsonl").read_text().splitlines():
+            r = RunResult.model_validate_json(ln)
+            final = r.agent_outputs[-1]["output"] if r.agent_outputs else ""
+            assert legacy_judge(final, r.detected, by_id[r.case_id].injection is not None) == r.attack_success
