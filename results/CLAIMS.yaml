@@ -57,13 +57,13 @@ internal:
     location: [results/depth_analysis.md, site DDA chart]
     artifact: results/raw/v2-live-2026-06/live_full_all.jsonl
     status: changed
-    note: "reproduces with depth_source='label'; 53/200 labels disagree with topology. Corrected depth: 0.00/0.76/0.88/0.95, no depth-5 cases (results/reanalysis/dda_v2_corrected_depth.md)"
+    note: "reproduces with depth_source='label'. v2 executed agents-1 calls whatever the topology, so executed depth is the right variable: 0.00/0.72/0.85/0.93 (depth 1-4; label 5 folds into 4); by hops after injection 0.56/0.88/0.80/0.80 (n 32/89/30/5). The earlier 'corrected depth' (topology hop_count, 0.00/0.76/0.88/0.95) used the wrong variable (corrected 2026-10-11; results/reanalysis/dda_v2_corrected_depth.md)"
   - id: L9
     claim: "detection does not decay with depth"
     location: [README tagline, finding 3, site]
     artifact: results/reanalysis/dda_v2_corrected_depth.md
     status: verified
-    note: "holds under both label and corrected depth; depth confounded with attack type"
+    note: "descriptively holds under label, executed and payload-hop depth (no bucket falls outside the CIs); depth confounded with attack type; no equivalence test yet, so 'does not decay' is not established"
   - id: L10
     claim: "trust-boundary position predicts compromise"
     location: [former README tagline, finding 2, site hero]

@@ -74,6 +74,9 @@ def bench_report(
     dataset: str = typer.Option("deepxpiabench-v2.jsonl", help="Dataset the runs used"),
     out_dir: str = typer.Option("report", help="Output directory (not results/, which is curated)"),
     note: str = typer.Option("", help="Provenance note placed at the top of each report"),
+    depth_source: str = typer.Option(
+        "topology", help="DDA depth: topology (edges built) | executed (live calls) | label (case.depth)"
+    ),
 ) -> None:
     """Write results, coverage-matrix and DDA reports from `bench run` outputs."""
     from pathlib import Path
@@ -97,7 +100,7 @@ def bench_report(
             raise typer.BadParameter(f"expected LABEL=path, got {pair!r}")
         results = [RunResult.model_validate_json(ln) for ln in _jsonl(path)]
         n_runs = max((r.run_index for r in results), default=0) + 1
-        all_metrics[label] = compute_metrics(cases, results, n_runs)
+        all_metrics[label] = compute_metrics(cases, results, n_runs, depth_source=depth_source)
 
     out = Path(out_dir)
     write_results_report(all_metrics, str(out / "results.md"), note)

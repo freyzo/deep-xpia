@@ -7,9 +7,10 @@ arXiv:2503.12188 (Sec. 4), which does not itself test depth.
 
 ## Live result (measured): hypothesis NOT confirmed
 
-Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by published depth label
-(53 of 200 labels disagree with the built topology; corrected-depth recomputation with
-95% CIs: [reanalysis/dda_v2_corrected_depth.md](reanalysis/dda_v2_corrected_depth.md)):
+Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by published depth label.
+The v2 harness ran each case as a chain of agents - 1 calls, ignoring topology, so labels 1-4
+equal the calls made and label-5 cases made 4. Tables by label, topology, executed calls and
+hops after injection, with 95% CIs: [reanalysis/dda_v2_corrected_depth.md](reanalysis/dda_v2_corrected_depth.md):
 
 | Depth | none | intent-verify | all |
 |-------|------|---------------|-----|
