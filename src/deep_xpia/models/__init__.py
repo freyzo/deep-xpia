@@ -10,9 +10,11 @@ missing provider package only matters when that provider is used.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any, Protocol
 
 
@@ -79,8 +81,12 @@ class AnthropicClient:
         return ModelResponse("".join(texts), calls, rid if isinstance(rid, str) else None, msg.content)
 
     def tool_results(self, response: ModelResponse, results: dict[str, str]) -> list[dict[str, Any]]:
+        content = response.raw_content
+        if content is None:  # e.g. replayed from cache: rebuild the assistant turn as plain blocks
+            content = ([{"type": "text", "text": response.text}] if response.text else []) + [
+                {"type": "tool_use", "id": c.id, "name": c.name, "input": c.args} for c in response.tool_calls]
         return [
-            {"role": "assistant", "content": response.raw_content},
+            {"role": "assistant", "content": content},
             {"role": "user", "content": [
                 {"type": "tool_result", "tool_use_id": cid, "content": out} for cid, out in results.items()
             ]},
@@ -145,6 +151,59 @@ class ScriptedClient:
     def tool_results(self, response: ModelResponse, results: dict[str, str]) -> list[dict[str, Any]]:
         return [{"role": "assistant", "content": response.text, "tool_calls": [c.id for c in response.tool_calls]},
                 {"role": "user", "content": [{"tool_result": cid, "content": out} for cid, out in results.items()]}]
+
+
+def _jsonable(value: Any) -> Any:
+    """Stable JSON form of request content, including provider SDK objects."""
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if hasattr(value, "model_dump"):
+        return _jsonable(value.model_dump())
+    if hasattr(value, "__dict__"):
+        return _jsonable({k: v for k, v in vars(value).items() if not k.startswith("_")})
+    return str(value)
+
+
+class CachingClient:
+    """Wraps a client; identical requests are answered from a JSON file per request.
+
+    Key = sha256 of (provider, model, system, messages, max_tokens, temperature,
+    tools). Lets a run be replayed, and its outputs re-scored, without new calls.
+    """
+
+    def __init__(self, inner: ModelClient, cache_dir: str | Path) -> None:
+        self.inner = inner
+        self.provider = inner.provider
+        self.dir = Path(cache_dir)
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self.hits = self.misses = 0
+
+    def key(self, **request: Any) -> str:
+        blob = json.dumps(_jsonable({"provider": self.provider, **request}), sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(blob.encode()).hexdigest()
+
+    def complete(self, *, model: str, system: str, messages: list[dict[str, Any]], max_tokens: int,
+                 temperature: float | None = None, tools: Sequence[ToolSpec] | None = None) -> ModelResponse:
+        key = self.key(model=model, system=system, messages=messages, max_tokens=max_tokens,
+                       temperature=temperature, tools=[asdict(t) for t in tools or []])
+        path = self.dir / f"{key}.json"
+        if path.exists():
+            self.hits += 1
+            data = json.loads(path.read_text())
+            return ModelResponse(data["text"], [ToolCall(**c) for c in data["tool_calls"]], data["request_id"])
+        self.misses += 1
+        resp = self.inner.complete(model=model, system=system, messages=messages, max_tokens=max_tokens,
+                                   temperature=temperature, tools=tools)
+        path.write_text(json.dumps({"text": resp.text, "tool_calls": [asdict(c) for c in resp.tool_calls],
+                                    "request_id": resp.request_id}, ensure_ascii=False, sort_keys=True))
+        return resp
+
+    def tool_results(self, response: ModelResponse, results: dict[str, str]) -> list[dict[str, Any]]:
+        return self.inner.tool_results(response, results)
 
 
 PROVIDERS = ("anthropic", "openai")

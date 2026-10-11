@@ -22,7 +22,7 @@ from deep_xpia import __version__
 from deep_xpia.bench.metrics import compute_metrics
 from deep_xpia.bench.outcomes import SCORER_VERSION, injected_hops_current, payload_and_markers, score_run
 from deep_xpia.bench.tools import MAX_TOOL_ROUNDS, MockEnvironment, tools_for
-from deep_xpia.models import PROVIDERS, ModelClient, make_client
+from deep_xpia.models import PROVIDERS, CachingClient, ModelClient, make_client
 from deep_xpia.bench.schema import (
     AggregateMetrics,
     BenchCase,
@@ -97,6 +97,7 @@ class BenchRunner:
         base_url: str | None = None,
         client: ModelClient | None = None,
         tools: bool = False,
+        cache_dir: str | None = None,
     ) -> None:
         self.dataset_path = Path(dataset_path)
         if target != "native":
@@ -124,6 +125,7 @@ class BenchRunner:
         self.base_url = base_url
         self._client = client  # injected client (tests, caching); else built per run from provider
         self.tools = tools  # mock tools per permission; success then includes attacker tool calls
+        self.cache_dir = cache_dir  # replay/record model responses (models.CachingClient)
 
     @staticmethod
     def _parse_defense(defense: str) -> DefenseState:
@@ -331,6 +333,8 @@ class BenchRunner:
     def _run_live(self, case: BenchCase, run_index: int) -> RunResult:
         """Execute the case with real model calls (provider: see deep_xpia.models)."""
         client = self._client if self._client is not None else make_client(self.provider, self.base_url)
+        if self.cache_dir and not isinstance(client, CachingClient):
+            client = self._client = CachingClient(client, self.cache_dir)
         t0 = time.monotonic()
         agent_outputs: list[dict[str, Any]] = []
         detected = False

@@ -74,3 +74,27 @@ def test_runner_accepts_an_injected_client() -> None:
     result = runner._run_live(case, 0)
     assert client.calls and result.agent_outputs[0]["output"] == "Here is the summary."
     assert result.run_metadata["provider"] == "anthropic"
+
+
+def test_cache_answers_identical_requests_and_replays_a_run(tmp_path) -> None:
+    from deep_xpia.bench.runner import BenchRunner
+    from deep_xpia.models import CachingClient, ModelResponse, ScriptedClient, ToolCall
+
+    def reply(call: dict[str, Any]) -> ModelResponse:
+        if len(call["messages"]) == 1 and call["tools"]:
+            return ModelResponse("", [ToolCall("summarize", {"target": "notes"}, "t1")], "req-1")
+        return ModelResponse("Summary ready.", [], "req-2")
+
+    inner = ScriptedClient(reply)
+    runner = BenchRunner("deepxpiabench-v2.jsonl", n_runs=1, client=inner, tools=True, cache_dir=str(tmp_path))
+    case = runner._load_dataset()[0]
+    first = runner._run_live(case, 0)
+    n_calls = len(inner.calls)
+
+    def fail(call: dict[str, Any]) -> ModelResponse:
+        raise AssertionError("cache miss on replay")
+
+    replay = BenchRunner("deepxpiabench-v2.jsonl", n_runs=1, client=CachingClient(ScriptedClient(fail), tmp_path),
+                         tools=True)._run_live(case, 0)
+    strip = lambda r: r.model_dump(exclude={"latency_ms"})  # noqa: E731
+    assert n_calls > 0 and strip(replay) == strip(first)
