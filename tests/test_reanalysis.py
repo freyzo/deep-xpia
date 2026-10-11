@@ -16,6 +16,7 @@ REPORTS = [
     ("results/reanalysis/reanalyze_v2_depth.py", "results/reanalysis/dda_v2_corrected_depth.md"),
     ("results/reanalysis/rescore_v2.py", "results/reanalysis/v2_rescored.md"),
     ("results/reanalysis/per_hop_v2.py", "results/reanalysis/v2_per_hop.md"),
+    ("results/reanalysis/stats_v2.py", "results/reanalysis/v2_stats.md"),
 ]
 
 
@@ -45,3 +46,10 @@ def test_unknown_depth_source_rejected() -> None:
 
     with pytest.raises(ValueError):
         compute_metrics([], [], 1, depth_source="hops")
+
+
+def test_gee_sensitivity_report_regenerates() -> None:
+    pytest.importorskip("statsmodels")
+    out = subprocess.run([sys.executable, "results/reanalysis/depth_gee_v2.py"], cwd=ROOT,
+                         capture_output=True, text=True, check=True).stdout
+    assert out.rstrip("\n") == (ROOT / "results/reanalysis/v2_depth_gee.md").read_text().rstrip("\n")

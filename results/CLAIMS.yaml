@@ -63,9 +63,9 @@ internal:
   - id: L9
     claim: "detection does not decay with depth"
     location: [README tagline, finding 3, site]
-    artifact: results/reanalysis/dda_v2_corrected_depth.md
-    status: verified
-    note: "descriptively holds under label, executed and payload-hop depth (no bucket falls outside the CIs); depth confounded with attack type; no equivalence test yet, so 'does not decay' is not established"
+    artifact: results/reanalysis/v2_stats.md
+    status: changed
+    note: "no depth bucket falls outside the CIs, but the equivalence test fails: intent-verification slope -0.03/hop, 90% CI [-0.14, +0.06] (taxonomy fixed effects, template-cluster bootstrap; results/reanalysis/v2_stats.md), so declines up to 14 points/hop are not excluded and no margin was fixed in advance. Intent + taint rises with depth, which run-level detection does mechanically (one more chance to fire per hop). Supported wording: 'no evidence that detection decays with depth in v2; v2 cannot rule out a decay'"
   - id: L10
     claim: "trust-boundary position predicts compromise"
     location: [former README tagline, finding 2, site hero]

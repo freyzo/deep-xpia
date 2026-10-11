@@ -40,6 +40,9 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.10",
 ]
+analysis = [
+    "statsmodels>=0.14",  # results/reanalysis/depth_gee_v2.py (GEE sensitivity model)
+]
 
 [project.scripts]
 deepxpia = "deep_xpia.cli:app"
