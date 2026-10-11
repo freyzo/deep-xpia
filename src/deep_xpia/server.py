@@ -23,7 +23,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from deep_xpia.events import EventType
+from deep_xpia.events import ChainEvent, EventType
 
 
 def create_app() -> FastAPI:
@@ -138,20 +138,23 @@ def create_app() -> FastAPI:
                          if v is not None),
                         "",
                     )
-                    payload = {
-                        "event_type": EventType.DELEGATION_RESULT.value,
-                        "chain_id": chain_id,
-                        "hop_number": getattr(ev, "hop", 0),
-                        "hop_depth": len(events),
-                        "from_agent": from_agent,
-                        "to_agent": to_agent,
-                        "intent": getattr(ev, "intent", ""),
-                        "content": content,
-                        "drift_score": getattr(ev, "drift_score", 0.0),
-                        "taint_set": [],
-                        "timestamp_ms": getattr(ev, "timestamp_ms", 0.0),
-                        "ground_truth_label": ev.ground_truth_label,
-                    }
+                    drift = getattr(ev, "drift_score", None)
+                    if drift is None:  # LaunderingHopEvent
+                        drift = getattr(ev, "drift_score_raw", 0.0)
+                    payload = ChainEvent(
+                        event_type=EventType.DELEGATION_RESULT,
+                        chain_id=chain_id,
+                        hop_number=getattr(ev, "hop", 0),
+                        hop_depth=len(events),
+                        from_agent=from_agent,
+                        to_agent=to_agent,
+                        intent=getattr(ev, "intent", ""),
+                        content=content,
+                        drift_score=drift,
+                        taint_set=[],
+                        timestamp_ms=getattr(ev, "timestamp_ms", 0.0),
+                        ground_truth_label=ev.ground_truth_label,
+                    ).model_dump(mode="json")
                     await broadcast(chain_id, payload)
                     await asyncio.sleep(0.3)  # pace for visualizer animation
 

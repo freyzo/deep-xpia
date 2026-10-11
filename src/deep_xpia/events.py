@@ -16,7 +16,6 @@ class EventType(str, Enum):
     TOOL_CALL = "tool_call"
     EXFIL_ATTEMPT = "exfil_attempt"
     CHAIN_COMPLETE = "chain_complete"
-    BENCH_PROGRESS = "bench_progress"
 
 
 class ChainEvent(BaseModel):
@@ -34,13 +33,3 @@ class ChainEvent(BaseModel):
     ground_truth_label: str  # for bench mode overlay
     metadata: dict[str, Any] = {}
 
-
-class BenchProgressEvent(BaseModel):
-    event_type: EventType = EventType.BENCH_PROGRESS
-    cases_run: int
-    cases_total: int
-    asr_current: float
-    tpr_current: float
-    fpr_current: float
-    dda_current: dict[int, float]
-    per_taxonomy_current: dict[str, dict[str, float]]
