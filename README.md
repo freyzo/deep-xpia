@@ -7,7 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 228 passing](https://img.shields.io/badge/tests-228_passing-brightgreen.svg)](tests/)
+[![Tests: 233 passing](https://img.shields.io/badge/tests-233_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -84,6 +84,9 @@ deepxpia bench run --target native --dataset deepxpiabench-v2.jsonl
 
 # live mode (real LLM calls, ~$8-15 for 300 cases)
 DEEPXPIA_LIVE=1 deepxpia bench run --model claude-haiku-4-5-20251001
+
+# other providers: any OpenAI-compatible API, e.g. a local vLLM server
+DEEPXPIA_LIVE=1 deepxpia bench run --provider openai --base-url http://localhost:8001/v1 --model <model>
 ```
 
 ## use as a library
@@ -201,7 +204,7 @@ deep-xpia/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
   paper/            related-work matrix and paper artifacts
-  tests/            228 tests
+  tests/            233 tests
 ```
 
 ## contributing

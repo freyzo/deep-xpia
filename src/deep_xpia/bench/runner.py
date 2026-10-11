@@ -21,6 +21,7 @@ from rich.table import Table
 from deep_xpia import __version__
 from deep_xpia.bench.metrics import compute_metrics
 from deep_xpia.bench.outcomes import SCORER_VERSION, injected_hops_current, score_run
+from deep_xpia.models import PROVIDERS, ModelClient, make_client
 from deep_xpia.bench.schema import (
     AggregateMetrics,
     BenchCase,
@@ -91,6 +92,9 @@ class BenchRunner:
         temperature: float | None = None,
         judge: str = "v2",
         message_format: str = "delegation",
+        provider: str = "anthropic",
+        base_url: str | None = None,
+        client: ModelClient | None = None,
     ) -> None:
         self.dataset_path = Path(dataset_path)
         if target != "native":
@@ -112,6 +116,11 @@ class BenchRunner:
         if message_format not in MESSAGE_FORMATS:
             raise ValueError(f"unknown message format {message_format!r}; expected one of: {', '.join(MESSAGE_FORMATS)}")
         self.message_format = message_format
+        if provider not in PROVIDERS:
+            raise ValueError(f"unknown provider {provider!r}; expected one of: {', '.join(PROVIDERS)}")
+        self.provider = provider
+        self.base_url = base_url
+        self._client = client  # injected client (tests, caching); else built per run from provider
 
     @staticmethod
     def _parse_defense(defense: str) -> DefenseState:
@@ -317,13 +326,8 @@ class BenchRunner:
         }
 
     def _run_live(self, case: BenchCase, run_index: int) -> RunResult:
-        """Execute the case with real Anthropic API calls."""
-        try:
-            import anthropic
-        except ImportError:
-            raise RuntimeError("anthropic package required for live mode: pip install anthropic")
-
-        client = anthropic.Anthropic()
+        """Execute the case with real model calls (provider: see deep_xpia.models)."""
+        client = self._client if self._client is not None else make_client(self.provider, self.base_url)
         t0 = time.monotonic()
         agent_outputs: list[dict[str, Any]] = []
         detected = False
@@ -406,17 +410,15 @@ class BenchRunner:
                     "\n\nAvailable tools (from the tool registry):\n"
                     + json.dumps(registry_manifest, indent=2)
                 )
-            params: dict[str, Any] = {
-                "model": self.model,
-                "max_tokens": 512,
-                "system": system,
-                "messages": [{"role": "user", "content": content}],
-            }
-            if self.temperature is not None:  # omit -> API default, as in the v2 runs
-                params["temperature"] = self.temperature
-            msg = client.messages.create(**params)
-            output = msg.content[0].text if msg.content else ""
-            agent_outputs.append({"hop": hop, "agent": agent.name, "output": output})
+            resp = client.complete(
+                model=self.model, system=system, messages=[{"role": "user", "content": content}],
+                max_tokens=512, temperature=self.temperature,  # None -> API default, as in the v2 runs
+            )
+            output = resp.text
+            entry: dict[str, Any] = {"hop": hop, "agent": agent.name, "output": output}
+            if resp.request_id:
+                entry["request_id"] = resp.request_id
+            agent_outputs.append(entry)
             prior = output
 
             # Run the real defense primitive on this hop's output.
@@ -449,6 +451,7 @@ class BenchRunner:
             agent_outputs=agent_outputs,
             run_metadata={
                 "mode": "live",
+                "provider": self.provider,
                 "model": self.model,
                 "temperature": self.temperature,
                 "message_format": self.message_format,

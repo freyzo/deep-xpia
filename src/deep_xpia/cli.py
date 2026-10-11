@@ -32,6 +32,8 @@ def bench_run(
     message_format: str = typer.Option(
         "delegation", help="Hand-off to hops >= 1: delegation (task + upstream output) | bare (v2: upstream output only)"
     ),
+    provider: str = typer.Option("anthropic", help="Live model provider: anthropic | openai (OpenAI-compatible API)"),
+    base_url: str = typer.Option(None, help="Base URL for an OpenAI-compatible server (e.g. a local vLLM)"),
 ) -> None:
     """Run DeepXPIABench against a target MAS."""
     from deep_xpia.bench.runner import BenchRunner
@@ -47,6 +49,8 @@ def bench_run(
         temperature=temperature,
         judge=judge,
         message_format=message_format,
+        provider=provider,
+        base_url=base_url,
     )
     runner.run()
 
