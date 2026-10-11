@@ -1,0 +1,16 @@
+{
+  "src/deep_xpia/adapters/native.py": 22,
+  "src/deep_xpia/bench/generator.py": 1,
+  "src/deep_xpia/bench/injection_library.py": 1,
+  "src/deep_xpia/bench/metrics.py": 1,
+  "src/deep_xpia/bench/report.py": 1,
+  "src/deep_xpia/bench/topologies.py": 31,
+  "src/deep_xpia/defenses/intent_verify.py": 12,
+  "src/deep_xpia/scenarios/intent_laundering/ground_truth.py": 1,
+  "src/deep_xpia/scenarios/intent_laundering/pipeline.py": 10,
+  "src/deep_xpia/scenarios/memory_poisoning/ground_truth.py": 2,
+  "src/deep_xpia/scenarios/memory_poisoning/pipeline.py": 9,
+  "src/deep_xpia/scenarios/registry_injection/pipeline.py": 8,
+  "src/deep_xpia/scenarios/session_smuggling/ground_truth.py": 3,
+  "src/deep_xpia/scenarios/session_smuggling/pipeline.py": 2
+}

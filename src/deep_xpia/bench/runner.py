@@ -360,14 +360,15 @@ class BenchRunner:
                     "\n\nAvailable tools (from the tool registry):\n"
                     + json.dumps(registry_manifest, indent=2)
                 )
-            sampling = {} if self.temperature is None else {"temperature": self.temperature}
-            msg = client.messages.create(
-                model=self.model,
-                max_tokens=512,
-                system=system,
-                messages=[{"role": "user", "content": content}],
-                **sampling,
-            )
+            params: dict[str, Any] = {
+                "model": self.model,
+                "max_tokens": 512,
+                "system": system,
+                "messages": [{"role": "user", "content": content}],
+            }
+            if self.temperature is not None:  # omit -> API default, as in the v2 runs
+                params["temperature"] = self.temperature
+            msg = client.messages.create(**params)
             output = msg.content[0].text if msg.content else ""
             agent_outputs.append({"hop": hop, "agent": agent.name, "output": output})
             prior = output

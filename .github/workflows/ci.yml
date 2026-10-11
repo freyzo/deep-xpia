@@ -26,3 +26,5 @@ jobs:
         run: python -m pyflakes src tests
       - name: Tests (simulated mode only; no API key, no live calls)
         run: python -m pytest -q
+      - name: Types (mypy ratchet; per-file error counts may only go down)
+        run: python scripts/mypy_ratchet.py
