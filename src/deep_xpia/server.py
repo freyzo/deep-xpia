@@ -19,12 +19,15 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from deep_xpia import __version__
 from deep_xpia.events import ChainEvent, EventType
+
+
+RUNNABLE_SCENARIOS = ("session_smuggling", "memory_poisoning", "intent_laundering", "registry_injection")
 
 
 def create_app() -> FastAPI:
@@ -65,6 +68,7 @@ def create_app() -> FastAPI:
         # depth = delegation edges (taxonomy depth_definition), read from ground truth
         from scenarios.intent_laundering.ground_truth import TOPOLOGY as IL_TOPOLOGY
         from scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP_TOPOLOGY
+        from scenarios.registry_injection.ground_truth import GROUND_TRUTH as REGISTRY_GT
         from scenarios.session_smuggling.ground_truth import TOPOLOGY as SS_TOPOLOGY
 
         return JSONResponse({
@@ -93,6 +97,14 @@ def create_app() -> FastAPI:
                     "depth": IL_TOPOLOGY.hop_count,
                     "description": "Intermediate agent makes injection harder to detect.",
                 },
+                {
+                    "id": "registry_injection",
+                    "taxonomy_id": "DXPIA-008",
+                    "title": "Registry Injection",
+                    "hop_mechanism": "trust_boundary_sideload",
+                    "depth": REGISTRY_GT["depth"],
+                    "description": "Injection enters via tool manifest metadata at registration.",
+                },
             ]
         })
 
@@ -102,6 +114,8 @@ def create_app() -> FastAPI:
         attack: bool = True,
         defense: str | None = None,
     ) -> JSONResponse:
+        if scenario_id not in RUNNABLE_SCENARIOS:
+            raise HTTPException(status_code=404, detail=f"unknown scenario {scenario_id!r}")
         chain_id = f"{scenario_id}-{uuid.uuid4().hex[:8]}"
 
         async def _run_and_stream() -> None:
@@ -119,7 +133,10 @@ def create_app() -> FastAPI:
                     events = result.events
                 elif scenario_id == "memory_poisoning":
                     from scenarios.memory_poisoning.pipeline import MemoryPoisoningPipeline
-                    p = MemoryPoisoningPipeline(attack=attack)
+                    # the scenario's defense is taint-aware memory
+                    p = MemoryPoisoningPipeline(
+                        attack=attack, taint_aware_memory=defense in ("taint", "all")
+                    )
                     result = p.run()
                     events = result.session1_events + result.session2_events
                 elif scenario_id == "intent_laundering":
@@ -127,8 +144,11 @@ def create_app() -> FastAPI:
                     p = IntentLaunderingPipeline(attack=attack, defense=defense)
                     result = p.run(chain_id=chain_id)
                     events = result.events
-                else:
-                    return
+                else:  # registry_injection
+                    from scenarios.registry_injection.pipeline import RegistryInjectionPipeline
+                    p = RegistryInjectionPipeline(attack=attack, defense=defense)
+                    result = p.run(chain_id=chain_id)
+                    events = result.events
 
                 # Scenario event dataclasses differ: DelegationEvent has from/to_agent +
                 # actual_output; LaunderingHopEvent has agent + output_content;
@@ -167,7 +187,9 @@ def create_app() -> FastAPI:
                 await broadcast(chain_id, {
                     "event_type": EventType.CHAIN_COMPLETE.value,
                     "chain_id": chain_id,
-                    "attack_succeeded": getattr(result, "attack_succeeded", False),
+                    "attack_succeeded": getattr(
+                        result, "attack_succeeded", getattr(result, "attack_activated", False)
+                    ),
                 })
             except Exception as e:
                 await broadcast(chain_id, {"event_type": "error", "chain_id": chain_id, "error": str(e)})
