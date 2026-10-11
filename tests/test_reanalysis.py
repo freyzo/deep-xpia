@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REPORTS = [
     ("results/reanalysis/v2_property_errata.py", "results/reanalysis/v2_property_errata.md"),
+    ("results/reanalysis/audit_v2_outcomes.py", "results/reanalysis/v2_outcome_validity.md"),
 ]
 
 
