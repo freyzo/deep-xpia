@@ -179,3 +179,11 @@ class AggregateMetrics(BaseModel):
 
     # per-taxonomy breakdown
     per_taxonomy: dict[str, dict[str, float]]  # {DXPIA-00N: {asr, tpr, fpr}}
+
+    # Wilson 95% CIs over pooled runs; defaults keep older serialized metrics valid
+    asr_ci: tuple[float, float] = (0.0, 1.0)
+    tpr_ci: tuple[float, float] = (0.0, 1.0)
+    fpr_ci: tuple[float, float] = (0.0, 1.0)
+    per_taxonomy_ci: dict[str, dict[str, tuple[float, float]]] = Field(default_factory=dict)
+    dda_ci: dict[int, tuple[float, float]] = Field(default_factory=dict)
+    dda_n: dict[int, int] = Field(default_factory=dict)  # runs per depth bucket

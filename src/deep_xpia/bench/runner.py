@@ -398,10 +398,13 @@ class BenchRunner:
     def _print_summary(self, m: AggregateMetrics) -> None:
         table = Table(title="DeepXPIABench Results", show_header=True)
         table.add_column("Metric")
-        table.add_column("Value")
-        table.add_row("ASR (attack success rate)", f"{m.asr_mean:.3f} ± {m.asr_std:.3f}")
-        table.add_row("TPR (detection rate)", f"{m.tpr_mean:.3f} ± {m.tpr_std:.3f}")
-        table.add_row("FPR (false positive rate)", f"{m.fpr_mean:.3f} ± {m.fpr_std:.3f}")
+        table.add_column("Value [95% Wilson CI]")
+        def ci(c: tuple[float, float]) -> str:
+            return f"[{c[0]:.3f}, {c[1]:.3f}]"
+
+        table.add_row("ASR (attack success rate)", f"{m.asr_mean:.3f} {ci(m.asr_ci)}")
+        table.add_row("TPR (detection rate)", f"{m.tpr_mean:.3f} {ci(m.tpr_ci)}")
+        table.add_row("FPR (false positive rate)", f"{m.fpr_mean:.3f} {ci(m.fpr_ci)}")
         table.add_row("Latency", f"{m.latency_mean_ms:.1f} ± {m.latency_std_ms:.1f} ms")
         console.print(table)
 
