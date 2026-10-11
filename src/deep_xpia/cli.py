@@ -34,6 +34,7 @@ def bench_run(
     ),
     provider: str = typer.Option("anthropic", help="Live model provider: anthropic | openai (OpenAI-compatible API)"),
     base_url: str = typer.Option(None, help="Base URL for an OpenAI-compatible server (e.g. a local vLLM)"),
+    tools: bool = typer.Option(False, "--tools", help="Give agents mock tools (one per permission); success includes attacker tool calls"),
 ) -> None:
     """Run DeepXPIABench against a target MAS."""
     from deep_xpia.bench.runner import BenchRunner
@@ -51,6 +52,7 @@ def bench_run(
         message_format=message_format,
         provider=provider,
         base_url=base_url,
+        tools=tools,
     )
     runner.run()
 

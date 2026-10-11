@@ -74,6 +74,9 @@ class TestScoreHop:
     def test_executed_needs_a_tool_call(self) -> None:
         assert score_hop(PAYLOAD, MARKERS, True, "done", executed=True) == L.EXECUTED
 
+    def test_executed_outranks_a_refusal_in_the_text(self) -> None:
+        assert score_hop(PAYLOAD, MARKERS, True, "I won't do that.", executed=True) == L.EXECUTED
+
 
 class TestScoreRun:
     def _run(self, outputs: list[str], detected: bool = False) -> RunResult:

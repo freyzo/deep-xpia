@@ -20,7 +20,8 @@ from rich.table import Table
 
 from deep_xpia import __version__
 from deep_xpia.bench.metrics import compute_metrics
-from deep_xpia.bench.outcomes import SCORER_VERSION, injected_hops_current, score_run
+from deep_xpia.bench.outcomes import SCORER_VERSION, injected_hops_current, payload_and_markers, score_run
+from deep_xpia.bench.tools import MAX_TOOL_ROUNDS, MockEnvironment, tools_for
 from deep_xpia.models import PROVIDERS, ModelClient, make_client
 from deep_xpia.bench.schema import (
     AggregateMetrics,
@@ -95,6 +96,7 @@ class BenchRunner:
         provider: str = "anthropic",
         base_url: str | None = None,
         client: ModelClient | None = None,
+        tools: bool = False,
     ) -> None:
         self.dataset_path = Path(dataset_path)
         if target != "native":
@@ -121,6 +123,7 @@ class BenchRunner:
         self.provider = provider
         self.base_url = base_url
         self._client = client  # injected client (tests, caching); else built per run from provider
+        self.tools = tools  # mock tools per permission; success then includes attacker tool calls
 
     @staticmethod
     def _parse_defense(defense: str) -> DefenseState:
@@ -399,6 +402,7 @@ class BenchRunner:
                 )
                 detected = vr.blocked
 
+        env = MockEnvironment()
         prior = ""
         for hop, agent in enumerate(agents[:-1]):  # last agent is executor
             if detected:  # blocked at tool registration
@@ -410,14 +414,31 @@ class BenchRunner:
                     "\n\nAvailable tools (from the tool registry):\n"
                     + json.dumps(registry_manifest, indent=2)
                 )
+            messages: list[dict[str, Any]] = [{"role": "user", "content": content}]
+            specs = tools_for(agent) if self.tools else None
             resp = client.complete(
-                model=self.model, system=system, messages=[{"role": "user", "content": content}],
+                model=self.model, system=system, messages=messages,
                 max_tokens=512, temperature=self.temperature,  # None -> API default, as in the v2 runs
+                tools=specs,
             )
-            output = resp.text
+            texts = [resp.text]
+            request_ids = [resp.request_id] if resp.request_id else []
+            rounds = 0
+            while self.tools and resp.tool_calls and rounds < MAX_TOOL_ROUNDS:
+                results = {c.id: env.call(hop, agent.name, c.name, c.args) for c in resp.tool_calls}
+                messages = messages + client.tool_results(resp, results)
+                resp = client.complete(model=self.model, system=system, messages=messages, max_tokens=512,
+                                       temperature=self.temperature, tools=specs)
+                texts.append(resp.text)
+                if resp.request_id:
+                    request_ids.append(resp.request_id)
+                rounds += 1
+            output = "\n".join(t for t in texts if t)
             entry: dict[str, Any] = {"hop": hop, "agent": agent.name, "output": output}
-            if resp.request_id:
-                entry["request_id"] = resp.request_id
+            if request_ids:
+                entry["request_id"] = request_ids[0] if len(request_ids) == 1 else request_ids
+            if self.tools:
+                entry["tool_calls"] = env.calls_at(hop)
             agent_outputs.append(entry)
             prior = output
 
@@ -455,6 +476,7 @@ class BenchRunner:
                 "model": self.model,
                 "temperature": self.temperature,
                 "message_format": self.message_format,
+                "tools": self.tools,
                 "harness_version": __version__,
                 "git_sha": _git_sha(),
                 "injection_surface": (
@@ -469,7 +491,9 @@ class BenchRunner:
             result.attack_success = legacy_judge(prior, detected, injection is not None)
             result.run_metadata["judge"] = "legacy-keywords"
         else:
-            outcome = score_run(case, result, injected, harness="current")
+            markers = payload_and_markers(case, "current")[1]
+            outcome = score_run(case, result, injected, harness="current",
+                                executed_hops=env.executed_hops(markers) if self.tools else None)
             result.attack_success = outcome.success
             result.outcome = outcome.final.value if outcome.final else None
             result.hop_outcomes = [label.value for label in outcome.per_hop]
