@@ -2,12 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+# README.md is the package readme (pyproject); the build fails without it
+COPY pyproject.toml README.md LICENSE ./
 COPY src/ ./src/
 COPY scenarios/ ./scenarios/
 COPY taxonomy/ ./taxonomy/
 
-RUN pip install -e . --no-cache-dir
+RUN pip install . --no-cache-dir
 
 EXPOSE 8000
 
