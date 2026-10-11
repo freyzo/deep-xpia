@@ -1,0 +1,315 @@
+# Related-work positioning matrix for the deep-xpia paper.
+# Facts were read from each paper's arXiv abstract page or HTML on the `accessed` date;
+# "not checked" marks details not verified. Recheck titles/authors/versions at submission.
+matrix_version: 1
+accessed: 2026-10-11
+fields: [id, ref, url, measures, topology_or_depth, outcome_measure, models, overlap, difference, cite_for]
+
+entries:
+  # ---- multi-agent injection and delegation (closest work)
+  - id: kill_chain_canaries
+    ref: "Wang, Zhang. Kill-Chain Canaries: Stage-Level Tracking of Prompt Injection Across Attack Surfaces and Five Production LLMs. arXiv:2603.28013 (v4, 2026-09-30)"
+    url: https://arxiv.org/abs/2603.28013
+    measures: "950 tests; a unique canary per payload; furthest stage reached (Exposed, Persisted, Relayed, Executed); 6 attack surfaces, 5 defense conditions"
+    topology_or_depth: "relay between agents through shared memory and tool results; depth not varied"
+    outcome_measure: canary-based stage tracking
+    models: "five production LLMs incl. Claude Haiku 4.5, Claude Sonnet 4.5, GPT-4o-mini, DeepSeek Chat (fifth not checked)"
+    overlap: tracking an injection across agents with canaries
+    difference: "no delegation-depth manipulation, no confused-deputy taxonomy"
+    cite_for: "canary/stage outcome measurement (our P1); Haiku/Sonnet 4.5 executed 0 of 164 text-surface attacks vs GPT-4o-mini 53%"
+  - id: masdrift
+    ref: "Xu et al. MasDrift: Benchmarking Authorization Preservation Across Multi-Agent Architectures. arXiv:2608.07556 (v2, 2026-08-11)"
+    url: https://arxiv.org/abs/2608.07556
+    measures: "600 benign tasks with reserved actions; single-agent vs centralized vs decentralized coordination"
+    topology_or_depth: "yes: hierarchy depth and peer width varied"
+    outcome_measure: task completion + unauthorized actions (authorization preservation)
+    models: not checked
+    overlap: delegation depth as an experimental variable; scope preservation across hops
+    difference: "benign tasks, no injection; measures authorization drift, not injection detection"
+    cite_for: "unauthorized actions 2.7-19.8% in centralized hierarchies vs 0.6-0.8% in peer networks, gap widening with depth; re-anchoring each call to the user request helps"
+  - id: operational_reframing
+    ref: "Liu et al. Operational Reframing and Approval-Framed Delegation in Multi-Agent LLM Safety. arXiv:2607.07097 (2026-07-08)"
+    url: https://arxiv.org/abs/2607.07097
+    measures: "five-condition controlled contrast separating reframing, planner behaviour and approval-framed delegation; 30 synthetic harmful scenarios + exploratory external set"
+    topology_or_depth: "planner -> executor; depth not varied"
+    outcome_measure: compliance judged by an LLM
+    models: "GPT, Gemini, DeepSeek and Claude families (versions not checked)"
+    overlap: effect of the delegation channel on downstream agents
+    difference: "harmful-request compliance, not cross-prompt injection"
+    cite_for: "controlled-contrast design (our P2.5, H3); approval framing raises executor compliance (Gemini 8.9% -> 38.9% with a Claude planner)"
+  - id: delegated_misalignment
+    ref: "Ying et al. Delegated Misalignment: How Multi-Agent Structures Amplify LLM Safety Risks. arXiv:2609.27900 (2026-08-26)"
+    url: https://arxiv.org/abs/2609.27900
+    measures: "6 frontier LLMs, 49 hazardous tasks, three-condition protocol (single agent vs principal vs subordinate)"
+    topology_or_depth: "principal -> subordinate; chain length not varied in the abstract"
+    outcome_measure: end-to-end full-execution rate
+    models: "6 frontier LLMs incl. GPT-5, DeepSeek-V3.2"
+    overlap: delegation amplifies risk
+    difference: harmful tasks rather than injected content
+    cite_for: "delegation raises full execution (GPT-5 22.5% -> 61.2%; DeepSeek-V3.2 30.6% -> 77.6%); single-layer defenses fail alone"
+  - id: esc_cr
+    ref: "Xu et al. Policy-Backed Selective Regeneration under Tainted Inter-Agent Communication. arXiv:2609.26072 (2026-08-02)"
+    url: https://arxiv.org/abs/2609.26072
+    measures: "ESC-CR defense: executable semantic commitments, release-boundary enforcement, clean-room regeneration; adaptive attacks"
+    topology_or_depth: several communication topologies (details not checked)
+    outcome_measure: unauthorized releases at matched compute
+    models: several model families (not checked)
+    overlap: taint on inter-agent messages
+    difference: "a defense, evaluated on code generation"
+    cite_for: "provenance-based alternative to our keyword 'taint' flag; retrying with polluted context fails to remove unauthorized influence"
+  - id: prompt_infection
+    ref: "Lee, Tiwari. Prompt Infection: LLM-to-LLM Prompt Injection within Multi-Agent Systems. arXiv:2410.07283 (2024)"
+    url: https://arxiv.org/abs/2410.07283
+    measures: self-replicating injection spreading across connected agents; LLM Tagging defense
+    topology_or_depth: propagation across agents (structure details not checked)
+    outcome_measure: not checked
+    models: not checked
+    overlap: injection propagation between agents
+    difference: "self-replication; no confused-deputy taxonomy or detection-by-depth analysis"
+    cite_for: foundational multi-agent propagation result; LLM Tagging as a defense
+  - id: agent_in_the_middle
+    ref: "He et al. Red-Teaming LLM Multi-Agent Systems via Communication Attacks. arXiv:2502.14847; Findings of ACL 2025"
+    url: https://arxiv.org/abs/2502.14847
+    measures: Agent-in-the-Middle (AiTM) interception and rewriting of inter-agent messages by an LLM adversary
+    topology_or_depth: several communication structures and frameworks
+    outcome_measure: not checked
+    models: not checked
+    overlap: the inter-agent channel as attack surface
+    difference: attacker controls the channel instead of planting content upstream
+    cite_for: communication-channel threat model
+  - id: netsafe
+    ref: "Yu et al. NetSafe: Exploring the Topological Safety of Multi-agent Networks. arXiv:2410.15686 (2024)"
+    url: https://arxiv.org/abs/2410.15686
+    measures: "safety of network topologies under misinformation, bias and harmful-information attacks (RelCom)"
+    topology_or_depth: "yes: connectivity and distance from the attacker"
+    outcome_measure: task/safety performance
+    models: not checked
+    overlap: topology shapes how attacks spread
+    difference: "misinformation spread, not injection or exfiltration"
+    cite_for: "highly connected networks are more fragile; greater distance from the attacker improves safety"
+  - id: g_safeguard
+    ref: "Wang et al. G-Safeguard: A Topology-Guided Security Lens and Treatment on LLM-based Multi-agent Systems. arXiv:2502.11127; ACL 2025"
+    url: https://arxiv.org/abs/2502.11127
+    measures: GNN anomaly detection on the multi-agent utterance graph plus topological intervention
+    topology_or_depth: graph-aware
+    outcome_measure: recovered task performance under attack
+    models: several LLM backbones (not checked)
+    overlap: detection inside multi-agent systems
+    difference: graph-level defense rather than a benchmark
+    cite_for: "topology-aware detection baseline (recovers over 40% of performance under prompt injection)"
+  - id: aciarena
+    ref: "ACIArena: Unified Evaluation for Agent Cascading Injection. arXiv:2604.07775 (2026)"
+    url: https://arxiv.org/abs/2604.07775
+    measures: "1,356 test cases, 6 multi-agent implementations, 3 objectives"
+    topology_or_depth: multiple MAS implementations
+    outcome_measure: not checked
+    models: not checked
+    overlap: cascading injection across agents
+    difference: "no delegation-specific taxonomy or confused-deputy focus; Limitations: robustness-oriented system design not explored"
+    cite_for: closest benchmark; scale reference
+  - id: sentinelagent
+    ref: "SentinelAgent. arXiv:2604.02767 (2026)"
+    url: https://arxiv.org/abs/2604.02767
+    measures: "delegation properties P1-P7; DelegationBench v4 (516 scenarios)"
+    topology_or_depth: "chain depth defined (Def. 2); robustness tests to depth 32 (latency, not detection)"
+    outcome_measure: property enforcement
+    models: not checked
+    overlap: formal delegation properties
+    difference: "no detection-by-depth results; no registry-metadata property"
+    cite_for: "property numbering used in taxonomy.yaml; adversarial intent paraphrasing limitation (Sec. VII-D)"
+  - id: mas_hijacking_2503_12188
+    ref: "Triedman, Jha, Shmatikov. Multi-Agent Systems Execute Arbitrary Malicious Code. arXiv:2503.12188 (2025)"
+    url: https://arxiv.org/abs/2503.12188
+    measures: hijacking multi-agent orchestration into executing attacker code
+    topology_or_depth: "AutoGen (Magentic-One, Selector, Round-Robin), CrewAI, MetaGPT; depth not varied"
+    outcome_measure: attack success (execution)
+    models: "GPT-4o, GPT-4o-mini, Gemini 1.5 Pro, Gemini 1.5 Flash"
+    overlap: content laundered through front-line agents reaches the orchestrator
+    difference: "does not test detection by depth"
+    cite_for: "laundering changes a request's presentation (Sec. 4) -> DXPIA-006; control-flow hijacking -> DXPIA-004"
+
+  # ---- single-agent injection benchmarks and corpora
+  - id: agentdojo
+    ref: "Debenedetti et al. AgentDojo. arXiv:2406.13352; NeurIPS 2024 Datasets and Benchmarks"
+    url: https://arxiv.org/abs/2406.13352
+    measures: "97 tasks, 629 security test cases, tool-using agents in stateful environments"
+    topology_or_depth: single agent
+    outcome_measure: formal checks on environment state (no LLM judge)
+    models: several (not checked)
+    overlap: indirect prompt injection with tools
+    difference: single agent
+    cite_for: state-based success checks (our P1.9); attack corpus (P5)
+  - id: asb
+    ref: "Zhang et al. Agent Security Bench (ASB). arXiv:2410.02644; ICLR 2025"
+    url: https://arxiv.org/abs/2410.02644
+    measures: "10 scenarios, 10 agents, 400+ tools, 27 attack/defense types, 13 LLM backbones"
+    topology_or_depth: single agent
+    outcome_measure: attack success rate + utility-security balance metric
+    models: 13 LLM backbones
+    overlap: memory poisoning and injection attacks
+    difference: single agent
+    cite_for: "attack corpus incl. memory poisoning (DXPIA-002); highest average ASR 84.30%"
+  - id: open_prompt_injection_usenix24
+    ref: "Liu et al. Formalizing and Benchmarking Prompt Injection Attacks and Defenses. arXiv:2310.12815; USENIX Security 2024"
+    url: https://arxiv.org/abs/2310.12815
+    measures: "formal framework; 5 attacks, 10 defenses, 10 LLMs, 7 tasks"
+    topology_or_depth: single model
+    outcome_measure: defined attack/defense metrics (details not checked)
+    models: 10 LLMs
+    overlap: formal attack definitions
+    difference: single model, no agents
+    cite_for: formal definitions of prompt injection
+  - id: mcptox
+    ref: "Wang et al. MCPTox: A Benchmark for Tool Poisoning Attack on Real-World MCP Servers. arXiv:2508.14925 (2025)"
+    url: https://arxiv.org/abs/2508.14925
+    measures: "1,312 malicious cases over 353 tools in 45 real MCP servers, 10 risk categories"
+    topology_or_depth: single agent at tool registration
+    outcome_measure: attack success rate; refusal rate
+    models: 20 agents (o1-mini highest, 72.8% ASR)
+    overlap: injection through tool metadata (DXPIA-008)
+    difference: no delegation chain after registration
+    cite_for: "registry-injection corpus (P5); content alignment refuses under 3%"
+  - id: toolhijacker
+    ref: "Shi et al. Prompt Injection Attack to Tool Selection in LLM Agents (ToolHijacker). arXiv:2504.19793; NDSS 2026"
+    url: https://arxiv.org/abs/2504.19793
+    measures: "malicious tool document injected into the tool library to win tool selection; 2 benchmarks, 8 LLMs, 4 retrievers"
+    topology_or_depth: single agent
+    outcome_measure: attack success / hit rate
+    models: 8 LLMs
+    overlap: tool-description attack surface (DXPIA-008)
+    difference: targets tool selection, no delegation
+    cite_for: "StruQ, SecAlign, known-answer detection, DataSentinel and perplexity defenses were insufficient"
+  - id: minja
+    ref: "Dong et al. Memory Injection Attacks on LLM Agents via Query-Only Interaction (v1 title: A Practical Memory Injection Attack against LLM Agents). arXiv:2503.03704"
+    url: https://arxiv.org/abs/2503.03704
+    measures: query-only memory injection with bridging steps and progressive shortening; 3 agents
+    topology_or_depth: shared memory across users
+    outcome_measure: injection success rate; attack success rate
+    models: not checked
+    overlap: persistence through shared memory (DXPIA-002)
+    difference: single agent; no delegation
+    cite_for: "98.2% average injection success, 76.8% attack success without write access"
+
+  # ---- defenses (baselines)
+  - id: camel
+    ref: "Debenedetti et al. Defeating Prompt Injections by Design (CaMeL). arXiv:2503.18813 (v2, 2025-06-24)"
+    url: https://arxiv.org/abs/2503.18813
+    measures: "capability-based system layer separating control and data flow; custom interpreter tracks provenance"
+    topology_or_depth: single agent
+    outcome_measure: AgentDojo tasks solved with provable security
+    models: not checked
+    overlap: provenance-based enforcement
+    difference: "architectural defense, not a benchmark"
+    cite_for: "information-flow baseline; 77% of AgentDojo tasks with provable security vs 84% undefended"
+  - id: fides
+    ref: "Costa et al. Securing AI Agents with Information-Flow Control (FIDES). arXiv:2505.23643 (v2, 2025-09-03)"
+    url: https://arxiv.org/abs/2505.23643
+    measures: "planner tracking confidentiality and integrity labels; deterministic policy enforcement; selective hiding"
+    topology_or_depth: single agent
+    outcome_measure: AgentDojo task completion with guarantees
+    models: not checked
+    overlap: taint/label propagation
+    difference: what real taint tracking looks like (labels, not keywords)
+    cite_for: contrast with our keyword 'taint' flag (P4.1)
+  - id: task_shield
+    ref: "Jia et al. The Task Shield. arXiv:2412.16682; ACL 2025"
+    url: https://arxiv.org/abs/2412.16682
+    measures: test-time check that each instruction and tool call serves the user goal
+    topology_or_depth: single agent
+    outcome_measure: AgentDojo ASR and utility
+    models: GPT-4o (reported)
+    overlap: intent-alignment checking (our intent verification)
+    difference: LLM-based, single agent
+    cite_for: "intent-alignment baseline: ASR 2.07% at 69.79% utility on AgentDojo with GPT-4o"
+  - id: llamafirewall
+    ref: "Meta. LlamaFirewall: An open source guardrail system for building secure AI agents. arXiv:2505.03574 (2025)"
+    url: https://arxiv.org/abs/2505.03574
+    measures: "PromptGuard 2 (86M and 22M classifiers), AlignmentCheck (chain-of-thought auditor), CodeShield"
+    topology_or_depth: single agent
+    outcome_measure: AgentDojo attack success with and without the firewall
+    models: not checked
+    overlap: detectors applicable per hop
+    difference: guardrail system
+    cite_for: offline detector baseline (PromptGuard 2) and LLM auditor baseline (AlignmentCheck)
+  - id: spotlighting
+    ref: "Hines et al. Defending Against Indirect Prompt Injection Attacks With Spotlighting. arXiv:2403.14720 (2024)"
+    url: https://arxiv.org/abs/2403.14720
+    measures: input transformations that mark data provenance in the prompt
+    topology_or_depth: single model
+    outcome_measure: attack success rate and task efficacy
+    models: GPT-family models
+    overlap: marking untrusted content
+    difference: prevention, not detection
+    cite_for: "prevention baseline: ASR from over 50% to under 2%"
+  - id: datasentinel
+    ref: "Liu et al. DataSentinel: A Game-Theoretic Detection of Prompt Injection Attacks. arXiv:2504.11358; IEEE S&P 2025"
+    url: https://arxiv.org/abs/2504.11358
+    measures: detector LLM fine-tuned with a min-max game against adaptive injections
+    topology_or_depth: single input
+    outcome_measure: detection of existing and adaptive attacks
+    models: not checked
+    overlap: detector applicable per hop
+    difference: detection only
+    cite_for: offline detector baseline
+  - id: design_patterns
+    ref: "Beurer-Kellner et al. Design Patterns for Securing LLM Agents against Prompt Injections. arXiv:2506.08837 (v3, 2025-06-27)"
+    url: https://arxiv.org/abs/2506.08837
+    measures: design patterns applied to ten case studies
+    topology_or_depth: architectural
+    outcome_measure: qualitative utility/security trade-offs
+    models: n/a
+    overlap: delegation architecture as the security boundary
+    difference: design guidance, no benchmark
+    cite_for: "once an agent has ingested untrusted input, it must be unable to trigger consequential actions"
+  - id: authenticated_delegation
+    ref: "South et al. Authenticated Delegation and Authorized AI Agents. arXiv:2501.09674 (2025)"
+    url: https://arxiv.org/abs/2501.09674
+    measures: framework for authenticated, authorized, auditable delegation to agents
+    topology_or_depth: delegation chains
+    outcome_measure: n/a (framework)
+    models: n/a
+    overlap: scoped delegation credentials
+    difference: identity/authorization framework
+    cite_for: design reference for signed delegation tokens (P4.7)
+  - id: attacker_moves_second
+    ref: "The Attacker Moves Second: Stronger Adaptive Attacks Bypass Defenses against LLM Jailbreaks and Prompt Injections. arXiv:2510.09023 (2025-10-10)"
+    url: https://arxiv.org/abs/2510.09023
+    measures: adaptive attacks (gradient, RL, random search, human-guided) against 12 defenses
+    topology_or_depth: n/a
+    outcome_measure: attack success rate
+    models: not checked
+    overlap: defense evaluation methodology
+    difference: methodology, not multi-agent
+    cite_for: "fixed-corpus defense claims are insufficient: most defenses fell to >90% ASR"
+
+  # ---- methodology
+  - id: error_bars_miller
+    ref: "Miller. Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations. arXiv:2411.00640 (2024)"
+    url: https://arxiv.org/abs/2411.00640
+    measures: statistics for evals (clustered standard errors, paired comparisons, power analysis)
+    topology_or_depth: n/a
+    outcome_measure: n/a
+    models: n/a
+    overlap: our statistics plan (P3)
+    difference: methodology
+    cite_for: clustered errors by template, paired defense comparisons, power analysis
+  - id: agentic_benchmark_checklist
+    ref: "Zhu et al. Establishing Best Practices for Building Rigorous Agentic Benchmarks. arXiv:2507.02825 (v5, 2025-08-07)"
+    url: https://arxiv.org/abs/2507.02825
+    measures: Agentic Benchmark Checklist (task and outcome validity)
+    topology_or_depth: n/a
+    outcome_measure: n/a
+    models: n/a
+    overlap: outcome validity of our success judge (A1)
+    difference: methodology
+    cite_for: "benchmarks with reward flaws (e.g. tau-bench scoring empty responses as success) misstate performance by up to 100%"
+  - id: injecguard_notinject
+    ref: "Li, Liu. InjecGuard: Benchmarking and Mitigating Over-defense in Prompt Injection Guardrail Models. arXiv:2410.22770"
+    url: https://arxiv.org/abs/2410.22770
+    measures: NotInject, 339 benign samples with trigger words, three difficulty levels
+    topology_or_depth: n/a
+    outcome_measure: over-defense accuracy
+    models: guardrail models (Deepset, Fmops, PromptGuard, ProtectAIv2, LakeraGuard, LlamaGuard3)
+    overlap: false positives of keyword-style detectors
+    difference: single-input guardrails
+    cite_for: hard negatives for FPR (P4.6); open-source guards near random on over-defense
