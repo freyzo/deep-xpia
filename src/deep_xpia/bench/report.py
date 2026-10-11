@@ -8,12 +8,19 @@ from deep_xpia.bench.metrics import AggregateMetrics, format_results_table
 from deep_xpia.bench.schema import TaxonomyID
 
 
+def _note(note: str) -> str:
+    return f"> {note}\n\n" if note else ""
+
+
 def write_results_report(
     all_metrics: dict[str, AggregateMetrics],
     output_path: str,
+    note: str = "",
 ) -> None:
     """Write the core results table for each defense label."""
-    body = "\n\n".join(format_results_table(m, label) for label, m in all_metrics.items())
+    body = _note(note) + "\n\n".join(
+        format_results_table(m, label) for label, m in all_metrics.items()
+    )
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(body)
@@ -22,6 +29,7 @@ def write_results_report(
 def write_coverage_matrix(
     all_metrics: dict[str, AggregateMetrics],
     output_path: str,
+    note: str = "",
 ) -> None:
     """Write defense x taxonomy coverage matrix."""
     taxonomy_ids = [t.value for t in TaxonomyID]
@@ -40,19 +48,24 @@ def write_coverage_matrix(
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
-        "# Defense x Taxonomy Coverage Matrix\n\nValues = TPR (detection rate)\n\n"
+        "# Defense x Taxonomy Coverage Matrix\n\n"
+        + _note(note)
+        + "Values = TPR (detection rate)\n\n"
         + "\n".join(rows)
+        + "\n"
     )
 
 
 def write_depth_analysis(
     all_metrics: dict[str, AggregateMetrics],
     output_path: str,
+    note: str = "",
 ) -> None:
     """Write DDA (depth-dependent accuracy) analysis."""
     lines = [
         "# Depth-Dependent Accuracy (DDA) Analysis",
         "",
+        *([f"> {note}", ""] if note else []),
         "DDA measures how detection accuracy changes as injection depth increases.",
         "The hypothesis (from arXiv:2503.12188): detection degrades with depth,",
         "especially for DXPIA-006 (intent laundering).",

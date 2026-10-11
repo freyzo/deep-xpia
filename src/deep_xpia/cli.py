@@ -73,6 +73,7 @@ def bench_report(
     runs: list[str] = typer.Argument(..., help="LABEL=results.jsonl pairs, one per defense"),
     dataset: str = typer.Option("deepxpiabench-v2.jsonl", help="Dataset the runs used"),
     out_dir: str = typer.Option("report", help="Output directory (not results/, which is curated)"),
+    note: str = typer.Option("", help="Provenance note placed at the top of each report"),
 ) -> None:
     """Write results, coverage-matrix and DDA reports from `bench run` outputs."""
     from pathlib import Path
@@ -99,9 +100,9 @@ def bench_report(
         all_metrics[label] = compute_metrics(cases, results, n_runs)
 
     out = Path(out_dir)
-    write_results_report(all_metrics, str(out / "results.md"))
-    write_coverage_matrix(all_metrics, str(out / "coverage_matrix.md"))
-    write_depth_analysis(all_metrics, str(out / "depth_analysis.md"))
+    write_results_report(all_metrics, str(out / "results.md"), note)
+    write_coverage_matrix(all_metrics, str(out / "coverage_matrix.md"), note)
+    write_depth_analysis(all_metrics, str(out / "depth_analysis.md"), note)
     console.print(f"[green]Wrote 3 reports for {', '.join(all_metrics)} -> {out}/[/green]")
 
 
