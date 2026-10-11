@@ -99,3 +99,13 @@ Not applicable to v2 (agents had no tools). Applies to v3 runs with mock tools (
 Two annotators label independently. Multi-class Cohen's kappa must reach 0.70,
 otherwise this codebook is revised and the items relabelled. The scorer is then
 compared with the adjudicated labels (per-label precision and recall).
+
+Procedure:
+1. `python scripts/annotation_sample.py` renders `sheet_v2.csv` (199 items from 150
+   seeded runs; the item list is fixed in `items_v2.csv`). Do not show `key_v2.csv`
+   (it names the defense) to annotators.
+2. Each annotator copies `labels_template.csv` to `labels_a.csv` / `labels_b.csv` and
+   fills `label` (one of the six labels), `quote_span` and `notes`, independently.
+3. Disagreements are settled by discussion into `adjudicated.csv` (same columns).
+4. `python scripts/annotation_agreement.py` writes `agreement.md` (kappa, and the
+   scorer's per-label precision and recall against `adjudicated.csv`).

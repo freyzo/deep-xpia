@@ -74,3 +74,6 @@ linkedin-drafts.md
 
 # Vite temp config bundles
 *.timestamp-*.mjs
+
+# rendered annotator sheet (regenerate: python scripts/annotation_sample.py)
+results/annotation/sheet_v2.csv
