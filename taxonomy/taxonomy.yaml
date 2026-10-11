@@ -28,11 +28,12 @@ attacks:
       - id: P2
         name: intent_preservation
         detail: "Response semantics diverge from delegated intent"
-    confused_deputies: 3
+    confused_deputies: 2
+    innocent_deputies: 1
     confused_deputy_roles:
       - "data source agent: has data access, produces action instruction"
       - "intermediary agent: trusts data agent output, forwards action"
-      - "executor agent: receives authorized-looking request (innocent)"
+      - "executor agent: receives authorized-looking request (innocent deputy)"
     reference_scenario: scenarios/session_smuggling/
     sources:
       - "CSA session smuggling PoC (March 2026)"
@@ -90,7 +91,7 @@ attacks:
         name: authority_narrowing
         detail: "Chain as a whole has more authority than any individual hop"
     confused_deputies: 3
-    reference_scenario: scenarios/intent_laundering/
+    reference_scenario: null  # no dedicated scenario; scenarios/intent_laundering/ (DXPIA-006) also traverses a 3-hop cascade
     sources:
       - "Invariant cross-server MCP exfil (April 2025)"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
@@ -238,10 +239,11 @@ attacks:
       - id: P5
         name: tool_integrity
         detail: "Tool metadata is trusted without content verification"
-    confused_deputies: 2
+    confused_deputies: 1
+    innocent_deputies: 1
     confused_deputy_roles:
-      - "registry/discovery agent: fetches tool manifest, trusts metadata implicitly"
-      - "task agent: uses poisoned tool, executes injection from description field"
+      - "tool selection agent: reads the manifest, trusts metadata implicitly"
+      - "task agent: uses the poisoned tool, executes injection from the description field (innocent deputy)"
     reference_scenario: scenarios/registry_injection/
     sources:
       - "BlueRock 7000 MCP server audit (2026): 36.7% SSRF-vulnerable"
