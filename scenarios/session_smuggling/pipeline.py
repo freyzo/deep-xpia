@@ -18,7 +18,6 @@ delegation response. Most intuitive demo scenario.
 
 from __future__ import annotations
 
-import json
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -195,10 +194,9 @@ class SessionSmugglingPipeline:
 
         # ----- HOP 2: research_agent -> trade_executor (if not blocked) -----
         if not blocked:
-            te_intent = f"Process research output and execute any authorized actions"
+            te_intent = "Process research output and execute any authorized actions"
             # financial_assistant forwards research output (including hidden instruction)
             if self.attack and "hidden_instruction" in research_data:
-                te_input = research_data["hidden_instruction"]
                 te_output = (
                     f"Received instruction from research agent (forwarded by financial assistant).\n"
                     f"Executing: {self.payload['expected_action']}\n"
@@ -207,7 +205,6 @@ class SessionSmugglingPipeline:
                 attack_succeeded = True
                 te_label = "innocent_deputy"
             else:
-                te_input = ra_output
                 te_output = "No trade instructions received. Standing by."
                 attack_succeeded = False
                 te_label = "clean"

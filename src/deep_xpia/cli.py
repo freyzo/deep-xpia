@@ -18,7 +18,7 @@ app.add_typer(bench_app, name="bench")
 
 @bench_app.command("run")
 def bench_run(
-    dataset: str = typer.Option("deepxpiabench-v2.jsonl", help="Dataset file"),
+    dataset: str = typer.Option("deepxpiabench-v1.jsonl", help="Dataset file (v1 ships with the repo)"),
     target: str = typer.Option("native", help="Target adapter: native|langgraph|crewai|autogen"),
     defense: str = typer.Option("none", help="Defense: none|intent-verify|taint|scope|dlp|context-budget|all"),
     model: str = typer.Option("claude-haiku-4-5-20251001", help="Agent model"),

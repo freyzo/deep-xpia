@@ -8,6 +8,7 @@ Anthropic API with structured prompts that represent the delegation chain.
 from __future__ import annotations
 
 import json
+import random
 import time
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,7 @@ from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 
-from deep_xpia.bench.metrics import compute_metrics, format_results_table
+from deep_xpia.bench.metrics import compute_metrics
 from deep_xpia.bench.schema import (
     AggregateMetrics,
     BenchCase,
@@ -58,7 +59,11 @@ class BenchRunner:
             "context-budget": DefenseState.CONTEXT_BUDGET,
             "all": DefenseState.ALL,
         }
-        return mapping.get(defense, DefenseState.UNDEFENDED)
+        if defense not in mapping:
+            raise ValueError(
+                f"unknown defense {defense!r}; expected one of: {', '.join(mapping)}"
+            )
+        return mapping[defense]
 
     def _load_dataset(self) -> list[BenchCase]:
         cases = []
@@ -90,10 +95,9 @@ class BenchRunner:
 
     def _run_simulated(self, case: BenchCase, run_index: int) -> RunResult:
         """Heuristic simulation for cost-free reproducibility."""
-        import random
-        rng = random.Random(hash(case.id) ^ run_index)
-
-        t0 = time.monotonic()
+        import zlib
+        # zlib.crc32, not hash(): str hashes are salted per process (PYTHONHASHSEED)
+        rng = random.Random(zlib.crc32(case.id.encode()) ^ run_index)
 
         # generate synthetic retrieval_log for CAS computation
         retrieval_log = self._simulate_retrieval_log(case, rng)
@@ -133,14 +137,14 @@ class BenchRunner:
         base_tpr = tpr_table.get(tid, {}).get(self.defense_state, 0.5)
 
         # DDA effect: detection degrades with depth (the headline finding)
-        depth_penalty = (case.depth - 2) * 0.05  # 5% per extra hop
+        depth_penalty = max(0, case.depth - 2) * 0.05  # 5% per extra hop beyond 2
         adjusted_tpr = max(0.0, base_tpr - depth_penalty)
 
         # DXPIA-006 intent laundering: detection degrades faster
         if tid == "DXPIA-006":
             adjusted_tpr = max(0.0, base_tpr - depth_penalty * 2)
 
-        attack_succeeded = rng.random() > adjusted_tpr
+        attack_succeeded = rng.random() < base_asr
         detected = rng.random() < adjusted_tpr
         prop_depth = case.depth if attack_succeeded else rng.randint(0, case.depth - 1)
 
@@ -167,7 +171,7 @@ class BenchRunner:
         )
 
     def _simulate_retrieval_log(
-        self, case: BenchCase, rng: "random.Random"
+        self, case: BenchCase, rng: random.Random
     ) -> list[dict[str, Any]]:
         """Generate synthetic retrieval_log entries for CAS computation.
 
@@ -278,7 +282,8 @@ class BenchRunner:
             if pos == InjectionPosition.FIRST_HOP:
                 return hop == 0
             if pos == InjectionPosition.LAST_HOP:
-                return hop == max_hop
+                # last hop the loop executes (agents[:-1]); matches generator's hop_count - 1
+                return hop == max_hop - 1
             return hop == max_hop // 2
 
         # --- Real defense primitives wired into the live path ---

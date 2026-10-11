@@ -213,7 +213,10 @@ Respond with JSON only:
         )
         import json
         try:
-            parsed = json.loads(msg.content[0].text)
+            text = msg.content[0].text
+            # models often wrap JSON in ```json fences or add prose; take the object
+            match = re.search(r"\{.*\}", text, re.DOTALL)
+            parsed = json.loads(match.group(0) if match else text)
             nli_label = parsed.get("label", "NEUTRAL").lower()
             drift = float(parsed.get("drift_score", 0.5))
             reason_text = parsed.get("reason", "")
@@ -278,11 +281,12 @@ Respond with JSON only:
         metadata_threshold = min(self.threshold, 0.15)
         saved = self.threshold
         self.threshold = metadata_threshold
-        result = self._verify_heuristic(
-            hop=0,  # tool registration is "hop 0" (pre-pipeline)
-            agent="tool_registry",
-            intent=f"Register tool: {tool_name}",
-            response=scannable,
-        )
-        self.threshold = saved
-        return result
+        try:
+            return self._verify_heuristic(
+                hop=0,  # tool registration is "hop 0" (pre-pipeline)
+                agent="tool_registry",
+                intent=f"Register tool: {tool_name}",
+                response=scannable,
+            )
+        finally:
+            self.threshold = saved

@@ -15,8 +15,6 @@ Usage:
 from __future__ import annotations
 
 import asyncio
-import json
-import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -25,7 +23,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from deep_xpia.events import ChainEvent, EventType
+from deep_xpia.events import EventType
 
 
 def create_app() -> FastAPI:
@@ -37,6 +35,7 @@ def create_app() -> FastAPI:
 
     # Active WebSocket connections {chain_id: [websocket, ...]}
     _connections: dict[str, list[WebSocket]] = {}
+    _tasks: set[asyncio.Task[None]] = set()
 
     async def broadcast(chain_id: str, event: dict[str, Any]) -> None:
         dead = []
@@ -100,6 +99,12 @@ def create_app() -> FastAPI:
         chain_id = f"{scenario_id}-{uuid.uuid4().hex[:8]}"
 
         async def _run_and_stream() -> None:
+            # The client learns chain_id from this response and only then opens
+            # the WebSocket; wait briefly for a subscriber so early events aren't lost.
+            for _ in range(50):
+                if _connections.get(chain_id):
+                    break
+                await asyncio.sleep(0.1)
             try:
                 if scenario_id == "session_smuggling":
                     from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
@@ -119,16 +124,29 @@ def create_app() -> FastAPI:
                 else:
                     return
 
+                # Scenario event dataclasses differ: DelegationEvent has from/to_agent +
+                # actual_output; LaunderingHopEvent has agent + output_content;
+                # SessionEvent has agent + content. Normalize here.
+                prev_agent = "user"
                 for ev in events:
+                    to_agent = getattr(ev, "to_agent", None) or getattr(ev, "agent", "")
+                    from_agent = getattr(ev, "from_agent", None) or prev_agent
+                    prev_agent = to_agent
+                    content = next(
+                        (v for v in (getattr(ev, a, None) for a in
+                                     ("actual_output", "output_content", "content"))
+                         if v is not None),
+                        "",
+                    )
                     payload = {
                         "event_type": EventType.DELEGATION_RESULT.value,
                         "chain_id": chain_id,
                         "hop_number": getattr(ev, "hop", 0),
                         "hop_depth": len(events),
-                        "from_agent": getattr(ev, "from_agent", ""),
-                        "to_agent": getattr(ev, "to_agent", getattr(ev, "agent", "")),
+                        "from_agent": from_agent,
+                        "to_agent": to_agent,
                         "intent": getattr(ev, "intent", ""),
-                        "content": getattr(ev, "actual_output", getattr(ev, "content", "")),
+                        "content": content,
                         "drift_score": getattr(ev, "drift_score", 0.0),
                         "taint_set": [],
                         "timestamp_ms": getattr(ev, "timestamp_ms", 0.0),
@@ -145,14 +163,19 @@ def create_app() -> FastAPI:
             except Exception as e:
                 await broadcast(chain_id, {"event_type": "error", "chain_id": chain_id, "error": str(e)})
 
-        asyncio.create_task(_run_and_stream())
+        # keep a reference so the task isn't garbage-collected mid-run
+        task = asyncio.create_task(_run_and_stream())
+        _tasks.add(task)
+        task.add_done_callback(_tasks.discard)
         return JSONResponse({"chain_id": chain_id, "status": "running"})
 
     @app.get("/health")
     async def health() -> JSONResponse:
         return JSONResponse({"status": "ok", "version": "2.0.0"})
 
-    @app.get("/")
+    # src/deep_xpia/server.py -> parents[2] is the repo root
+    dashboard_build = Path(__file__).resolve().parents[2] / "dashboard" / "dist"
+
     async def root() -> HTMLResponse:
         # Minimal fallback when dashboard build isn't present
         return HTMLResponse("""
@@ -168,10 +191,12 @@ def create_app() -> FastAPI:
 </html>
 """)
 
-    # Mount static dashboard build if it exists
-    dashboard_build = Path(__file__).parent.parent.parent.parent / "dashboard" / "dist"
+    # Serve the static dashboard build if it exists; otherwise the fallback page.
+    # (A GET "/" route registered first would shadow the mount.)
     if dashboard_build.exists():
         app.mount("/", StaticFiles(directory=str(dashboard_build), html=True), name="dashboard")
+    else:
+        app.add_api_route("/", root, methods=["GET"])
 
     return app
 

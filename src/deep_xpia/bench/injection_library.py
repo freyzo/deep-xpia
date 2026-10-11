@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import base64
 import random
-import unicodedata
 
 from deep_xpia.bench.schema import (
     InjectionPosition,

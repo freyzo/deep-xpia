@@ -27,7 +27,6 @@ from deep_xpia.bench.schema import (
     HopMechanism,
     InjectionPosition,
     InjectionSpec,
-    InjectionTechnique,
     PayloadType,
     Severity,
     TaxonomyID,
@@ -142,6 +141,10 @@ class BenchGenerator:
         allowed_topos = TAXONOMY_TOPOLOGIES[taxonomy_id]
         topo_type = self.rng.choice(allowed_topos)
         topology = sample_topology(self.rng, agent_count, topo_type)
+        # builders may fall back (e.g. fan_out with <4 agents -> linear) and
+        # non-linear topologies have fixed hop counts; record what was built
+        topo_type = topology.topology_type
+        depth = topology.hop_count
 
         injection = sample_attack_injection(self.rng, tid)
 

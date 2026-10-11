@@ -44,7 +44,7 @@ DLP_PATTERNS: dict[str, list[str]] = {
         r"https?://\S+\.corp\.\S+",
     ],
     "pii_email": [
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
     ],
     "pii_ssn": [
         r"\b\d{3}-\d{2}-\d{4}\b",

@@ -64,3 +64,6 @@ dashboard/build/
 .mypy_cache/
 wiki/ # keep local copies for the wiki repo
 linkedin-drafts.md # never commit job-hunt notes
+
+# Vite temp config bundles
+*.timestamp-*.mjs

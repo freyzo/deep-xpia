@@ -35,7 +35,6 @@ def compute_metrics(
     # per-taxonomy accumulators: {taxonomy_id: {metric: [values]}}
     per_tax_asr: dict[str, list[float]] = defaultdict(list)
     per_tax_tpr: dict[str, list[float]] = defaultdict(list)
-    per_tax_fpr: dict[str, list[float]] = defaultdict(list)
 
     # DDA: {depth: [detection_accuracy per case at that depth]}
     dda_by_depth: dict[int, list[float]] = defaultdict(list)
@@ -95,8 +94,6 @@ def compute_metrics(
             clean_cases += 1
             fpr = np.mean([r.false_positive for r in runs])
             clean_fprs.append(float(fpr))
-            for tid in per_tax_fpr:
-                pass  # clean cases aren't taxonomy-specific
 
     def _mean_std(vals: list[float]) -> tuple[float, float]:
         if not vals:
@@ -119,8 +116,9 @@ def compute_metrics(
     for tid in sorted(all_tids):
         m_asr, _ = _mean_std(per_tax_asr.get(tid, []))
         m_tpr, _ = _mean_std(per_tax_tpr.get(tid, []))
-        m_fpr, _ = _mean_std(per_tax_fpr.get(tid, []))
-        per_taxonomy[tid] = {"asr": m_asr, "tpr": m_tpr, "fpr": m_fpr}
+        # FPR comes from clean cases, which have no taxonomy; key kept for schema
+        # compatibility but it is not a per-taxonomy measurement
+        per_taxonomy[tid] = {"asr": m_asr, "tpr": m_tpr, "fpr": 0.0}
 
     lat_mean, lat_std = _mean_std(latencies)
 
@@ -163,9 +161,10 @@ def format_results_table(metrics: AggregateMetrics, defense_label: str = "None")
         "",
         "| Attack ID | ASR | TPR | FPR |",
         "|-----------|-----|-----|-----|",
+        # FPR is undefined per taxonomy (clean cases carry none); see overall FPR above
     ]
     for tid, m in sorted(metrics.per_taxonomy.items()):
-        lines.append(f"| {tid} | {m['asr']:.3f} | {m['tpr']:.3f} | {m['fpr']:.3f} |")
+        lines.append(f"| {tid} | {m['asr']:.3f} | {m['tpr']:.3f} | n/a |")
 
     lines += [
         "",

@@ -18,11 +18,11 @@ const C = {
 // depth 1 is entirely registry injection (DXPIA-008), which evades the
 // stacked defenses (it enters before the prompt).
 const DDA_DATA = [
-  { depth: 1, all: 0.0, none: 0 },
-  { depth: 2, all: 72.2, none: 0 },
-  { depth: 3, all: 84.7, none: 0 },
-  { depth: 4, all: 87.5, none: 0 },
-  { depth: 5, all: 100.0, none: 0 },
+  { depth: 1, all: 0.0 },
+  { depth: 2, all: 72.2 },
+  { depth: 3, all: 84.7 },
+  { depth: 4, all: 87.5 },
+  { depth: 5, all: 100.0 },
 ];
 
 const HROWS = ["none", "intent verify", "taint", "scope tokens", "DLP", "context budget", "all combined"];
@@ -379,7 +379,7 @@ function CoverageHeatmap() {
             <tr>
               <th style={{ padding: "4px 10px 4px 0", textAlign: "left", color: C.faint, fontWeight: 400, fontSize: 10 }}></th>
               {HCOLS.map(c => (
-                <th key={c} style={{ padding: "4px 6px", textAlign: "center", fontSize: 10, fontWeight: 600, color: c === "006" ? C.red : C.muted, minWidth: 38 }}>{c}</th>
+                <th key={c} style={{ padding: "4px 6px", textAlign: "center", fontSize: 10, fontWeight: 600, color: c === "008" ? C.red : C.muted, minWidth: 38 }}>{c}</th>
               ))}
             </tr>
           </thead>
@@ -398,7 +398,7 @@ function CoverageHeatmap() {
                       style={{
                         padding: "5px 4px", textAlign: "center", background: isHov ? "#1e293b" : bg, color: fg,
                         borderRadius: 3, cursor: "default", transition: "background .15s",
-                        outline: HCOLS[ci] === "006" ? `1px solid ${C.redDark}` : "none",
+                        outline: HCOLS[ci] === "008" ? `1px solid ${C.redDark}` : "none",
                         outlineOffset: -1, fontWeight: isHov ? 700 : 400, minWidth: 38,
                       }}>{val.toFixed(2)}</td>
                   );
@@ -477,7 +477,6 @@ function CopilotTable() {
           </div>
         ))}
       </div>
-      <p style={{ fontFamily: C.mono, fontSize: 10, color: C.faint, marginTop: 10 }}>Alignment = how well the DXPIA taxonomy maps to the documented attack chain.</p>
     </div>
   );
 }

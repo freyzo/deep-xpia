@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from deep_xpia.bench.metrics import AggregateMetrics, format_results_table
+from deep_xpia.bench.schema import TaxonomyID
 
 
 def write_results_report(
@@ -23,8 +24,7 @@ def write_coverage_matrix(
     output_path: str = "results/coverage_matrix.md",
 ) -> None:
     """Write defense x taxonomy coverage matrix."""
-    taxonomy_ids = ["DXPIA-001", "DXPIA-002", "DXPIA-003", "DXPIA-004", "DXPIA-005", "DXPIA-006", "DXPIA-007"]
-    defenses = list(all_metrics.keys())
+    taxonomy_ids = [t.value for t in TaxonomyID]
 
     header = "| Defense | " + " | ".join(taxonomy_ids) + " |"
     sep = "|---------|" + "|".join(["--------"] * len(taxonomy_ids)) + "|"

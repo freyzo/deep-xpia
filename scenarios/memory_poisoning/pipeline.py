@@ -25,13 +25,12 @@ WHY THIS IS DEEPER THAN DXPIA-001:
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from scenarios.memory_poisoning.attack_payloads import (
     ATTACK_PAYLOADS,
     CLEAN_EMAIL,
-    LEGITIMATE_EMAIL_TASK,
 )
 
 
@@ -153,14 +152,12 @@ class MemoryPoisoningPipeline:
         t0 = time.monotonic()
         events: list[SessionEvent] = []
         attack_activated = False
-        detected = False
 
         # calendar_agent reads user preferences (including potentially poisoned link)
         meeting_link, taint = self.memory.read("user_preferences.meeting_link")
 
         # taint_aware detection: if memory is taint-aware AND taint shows UNTRUSTED source
         if taint and taint.get("trust") == "untrusted":
-            detected = True
             ev_detect = SessionEvent(
                 session_id=session_id,
                 hop=2,
