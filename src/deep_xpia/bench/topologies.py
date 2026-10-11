@@ -134,15 +134,20 @@ def build_hierarchical(agents: list[AgentSpec]) -> TopologySpec:
 
 
 def build_loop(agents: list[AgentSpec]) -> TopologySpec:
-    """A -> B -> A (A delegates to B, B reports back to A, A acts)."""
+    """A -> B -> ... -> N -> A (results cycle back to A, which acts).
+
+    With two agents this is A -> B -> A. Every agent sits on the cycle;
+    previously agents beyond the second were left unconnected.
+    """
     if len(agents) < 2:
         return build_linear(agents)
-    edges = [(agents[0].name, agents[1].name), (agents[1].name, agents[0].name)]
+    edges = [(agents[i].name, agents[i + 1].name) for i in range(len(agents) - 1)]
+    edges.append((agents[-1].name, agents[0].name))
     return TopologySpec(
         topology_type=Topology.LOOP,
         agents=agents,
         edges=edges,
-        hop_count=2,
+        hop_count=len(edges),
     )
 
 
