@@ -18,7 +18,8 @@ from deep_xpia.bench.schema import (
 
 # ---------------------------------------------------------------------------
 # Raw payload templates (plaintext)
-# Placeholders: {target}, {action}, {data}, {trigger}
+# Placeholders: {target}, {action}, {data}. ({trigger} is passed to .format() but no
+# template uses it, so v2 DXPIA-007 cases carry no trigger.)
 # ---------------------------------------------------------------------------
 
 EXFIL_PAYLOADS = [

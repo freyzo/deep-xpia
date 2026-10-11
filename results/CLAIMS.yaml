@@ -76,6 +76,7 @@ internal:
     artifact: deepxpiabench-v2.jsonl
     value: {cases: 300, attack: 200, clean: 100, per_taxonomy: 25}
     status: verified
+    note: "8 taxonomy ids; in v2 they share 16 payload templates and differ in position, topology, depth, task and payload type (L18)"
   - id: L12
     claim: "v2 dataset reproducible from master generator (seed 42, 200/100)"
     artifact: deepxpiabench-v2.jsonl
@@ -112,7 +113,12 @@ internal:
     command: "python results/reanalysis/v2_property_errata.py"
     status: corrected
     note: "renumbered to arXiv:2604.02767 (Sec. III-B/C): DXPIA-004 P4->P5, DXPIA-007 P3->P4, DXPIA-008 P5 ('tool_integrity', not in the paper) -> none; 75 v2 cases keep the old ids (immutable file, see errata). Fit of DXPIA-002 (P6) and DXPIA-003 (P1) flagged for review in taxonomy fit_note"
-
+  - id: L18
+    claim: "v2 attack content: 16 shared payload templates across the 8 DXPIA ids; no {trigger} use (DXPIA-007), no shared memory (DXPIA-002); 10 plain clean tasks"
+    location: [README honest limitations, taxonomy v2_note (DXPIA-002, DXPIA-007)]
+    artifact: src/deep_xpia/bench/injection_library.py
+    status: verified
+    note: "limits what per-taxonomy differences in v2 can mean; v3 imports published corpora (workflow P5)"
 external:
   - id: arXiv:2604.07775
     what: "ACIArena: 1,356 test cases, 6 MAS implementations, 3 objectives; Limitations: 'without exploring robustness-oriented system design'"

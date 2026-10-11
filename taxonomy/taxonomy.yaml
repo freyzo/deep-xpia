@@ -78,6 +78,7 @@ attacks:
       boundaries, not just agent boundaries.
     depth_range: [2, 99]
     depth_detail: "inject in session 1, execute in session N (unbounded)"
+    v2_note: "v2 benchmark cases have no shared-memory component; the mechanic exists only in the scripted memory_poisoning scenario"
     attack_surface: shared_state_memory
     owasp_agentic: [ASI06]
     owasp_detail:
@@ -229,6 +230,7 @@ attacks:
       semantic (a keyword), temporal (a time), or contextual (a state).
     depth_range: [2, 99]
     depth_detail: "2+ hops, time-delayed; unbounded temporal distance"
+    v2_note: "v2 benchmark cases carry no trigger (no template uses {trigger}); the mechanic is not exercised"
     attack_surface: external_input_plus_temporal
     owasp_agentic: [ASI06, ASI01]
     owasp_detail:
