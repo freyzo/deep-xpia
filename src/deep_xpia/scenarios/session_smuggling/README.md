@@ -11,6 +11,8 @@ A user asks for a market analysis. The financial assistant delegates to a resear
 
 The injection rides inside a legitimate delegation response. No abnormal channel is required.
 
+Prior work: this scenario follows Unit 42's agent session smuggling proof of concept, in which a research agent's hidden instructions made a financial assistant buy stock ([Lu and Chen, 2025](https://unit42.paloaltonetworks.com/agent-session-smuggling-in-agent2agent-systems/)).
+
 ## Why This Scenario First
 
 Simplest hop mechanism. Most intuitive for non-security audiences. The demo that makes people understand what deep-xpia means.

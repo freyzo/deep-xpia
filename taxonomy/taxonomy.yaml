@@ -58,7 +58,8 @@ attacks:
       - "executor agent: receives authorized-looking request (innocent deputy)"
     reference_scenario: src/deep_xpia/scenarios/session_smuggling/
     sources:
-      - "CSA session smuggling PoC (March 2026)"
+      - "[unit42-session-smuggling-2025] Unit 42 (Lu, Chen), When AI Agents Go Rogue: Agent Session Smuggling Attack in A2A Systems (2025-10-31); the session_smuggling scenario follows its hidden stock-trade PoC"
+      - "[csa-okta-delegation-2026] secondary: CSA/Okta, Control the chain, secure the system (2026-03-25), summarizes the Unit 42 PoC"
     example_pipeline: "user -> financial_assistant -> research_agent -> trade_executor"
 
   - id: DXPIA-002
@@ -87,7 +88,7 @@ attacks:
     confused_deputies: 2
     reference_scenario: src/deep_xpia/scenarios/memory_poisoning/
     sources:
-      - "Rehberger Gemini memory attack (2025)"
+      - "[rehberger-gemini-memory-2025] Rehberger, Hacking Gemini's Memory with Prompt Injection and Delayed Tool Invocation (Embrace The Red, 2025-02-10)"
     example_pipeline: "user -> email_assistant -> [shared memory] -> calendar_agent -> action_agent"
 
   - id: DXPIA-003
@@ -117,7 +118,7 @@ attacks:
     confused_deputies: 3
     reference_scenario: null  # no dedicated scenario; src/deep_xpia/scenarios/intent_laundering/ (DXPIA-006) also traverses a 3-hop cascade
     sources:
-      - "Invariant cross-server MCP exfil (April 2025)"
+      - "[invariant-whatsapp-mcp-2025] Invariant Labs, WhatsApp MCP Exploited: cross-server tool poisoning exfiltrates message history (2025-04-07)"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
 
   - id: DXPIA-004
@@ -145,7 +146,7 @@ attacks:
         detail: "Injection modifies which agents are in the cascade"
     confused_deputies: 1
     sources:
-      - "arXiv:2503.12188 MAS hijacking"
+      - "[arXiv:2503.12188] Triedman, Jha, Shmatikov (2025): adversarial content hijacks multi-agent orchestration"
     example_pipeline: "user -> orchestrator (re-routed) -> attacker_agent"
 
   - id: DXPIA-005
@@ -172,7 +173,7 @@ attacks:
         detail: "Delegator effectively gains authority it does not hold"
     confused_deputies: 1
     sources:
-      - "CSA cross-agent privilege escalation (Sept 2025)"
+      - "[rehberger-cross-agent-privesc-2025] Rehberger, Cross-Agent Privilege Escalation: When Agents Free Each Other (Embrace The Red, 2025-09-24); there one coding agent rewrites another's config files, a related but different mechanism"
     example_pipeline: "user -> read_only_agent -> write_capable_agent (exploited)"
 
   - id: DXPIA-006
@@ -209,7 +210,7 @@ attacks:
       "significantly changes its presentation".
     reference_scenario: src/deep_xpia/scenarios/intent_laundering/
     sources:
-      - "arXiv:2503.12188 Sec. 4: laundering a request through another agent changes its presentation"
+      - "[arXiv:2503.12188] Sec. 4: laundering a request through another agent changes its presentation"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
 
   - id: DXPIA-007
@@ -237,7 +238,7 @@ attacks:
         detail: "Dormant injection is hard to attribute to original source"
     confused_deputies: 2
     sources:
-      - "Rehberger delayed trigger in Gemini (2025)"
+      - "[rehberger-gemini-memory-2025] same post: delayed tool invocation fires when the user later says a trigger word"
     example_pipeline: "user -> agent_A (dormant injection stored) -> agent_B (trigger fires)"
 
   - id: DXPIA-008
@@ -274,8 +275,6 @@ attacks:
       - "task agent: uses the poisoned tool, executes injection from the description field (innocent deputy)"
     reference_scenario: src/deep_xpia/scenarios/registry_injection/
     sources:
-      - "BlueRock 7000 MCP server audit (2026): 36.7% SSRF-vulnerable"
-      - "Trend Micro: 492 MCP servers zero auth (2026)"
-      - "CVE-2026-35435: Copilot agent runtime CVSS 8.6"
-      - "CVE-2026-21520: Copilot Studio prompt injection CVSS 7.5"
+      - "[invariant-tool-poisoning-2025] Invariant Labs, MCP Security Notification: Tool Poisoning Attacks (2025-04-01)"
+      - "[arXiv:2508.14925] MCPTox: tool poisoning benchmark on real-world MCP servers"
     example_pipeline: "user -> registry_lookup -> tool_selection_agent -> task_agent"

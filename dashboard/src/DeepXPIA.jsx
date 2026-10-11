@@ -49,11 +49,11 @@ const TAXONOMY = [
 ];
 
 const COPILOT = [
-  { name: "EchoLeak", cve: "CVE-2025-32711", dxpia: "DXPIA-006", dname: "Intent Laundering", depth: 4, detail: "Zero-click attack. Crafted email triggered multi-hop trust chain ending in sensitive data exfiltration. Bypassed Microsoft's XPIA classifier via laundering across agent hops. First production-scale proof that XPIA becomes agent compromise, not prompt manipulation." },
-  { name: "Copilot Studio exfil", cve: "", dxpia: "DXPIA-001", dname: "Session Smuggling", depth: 3, detail: "Copilot Studio agent induced via prompt injection to leak customer data through email responses. Classic instruction piggyback inside a legitimate delegation response — no abnormal channel required." },
-  { name: "Reprompt attack", cve: "", dxpia: "DXPIA-004", dname: "Chain Re-routing", depth: 2, detail: "URL parameter → Copilot → sensitive data retrieval → external transmission. Model failed to distinguish user intent from attacker-supplied context. Patched by Microsoft." },
-  { name: "Email summary abuse", cve: "", dxpia: "DXPIA-007", dname: "Delayed Trigger", depth: 2, detail: "Attacker email manipulates AI-generated summary to create phishing opportunities. The AI becomes a trust amplifier — trust laundering through the delegation boundary." },
-  { name: "Copilot Studio IPI", cve: "CVE-2026-21520", dxpia: "DXPIA-005", dname: "Scope Escalation", depth: 3, detail: "Indirect injection vulnerability survived the chatbot→agent transition. Confirms the thesis: agency amplifies risk. Disclosed by Capsule Security, patched by Microsoft." },
+  { name: "EchoLeak", cve: "CVE-2025-32711", ref: "arXiv:2509.10540", closest: "DXPIA-003", src: "Reddy & Gujral, arXiv:2509.10540 (Aim Security disclosure, June 2025)", detail: "Zero-click: one crafted email, retrieved by Microsoft 365 Copilot as context, led to data exfiltration through chained bypasses (XPIA classifier evasion, reference-style Markdown links, auto-fetched images, a CSP-allowed Teams proxy). Single agent; no delegation hop." },
+  { name: "AgentFlayer", cve: "", ref: "zenity-agentflayer-2025", closest: "DXPIA-003", src: "Zenity Labs, 2025-07-07", detail: "A crafted email to a Copilot Studio agent that monitored an inbox made it email back a knowledge-source file and Salesforce CRM records, with no user interaction. Single agent: entry through the inbox, exfiltration through the agent's own email tool." },
+  { name: "Reprompt", cve: "", ref: "varonis-reprompt-2026", closest: "DXPIA-004", src: "Varonis Threat Labs, January 2026", detail: "One click on a crafted link pre-filled a prompt in Copilot Personal; follow-up instructions from an attacker server then extracted personal data step by step, past client-side monitoring. Single agent; the attacker server steers the request chain." },
+  { name: "Summary phishing", cve: "", ref: "permiso-autophish-2026", closest: "DXPIA-006", src: "Permiso, 2026-03-12", detail: "Hidden instructions in an email made Copilot's email summary show a fake security alert, so the phishing content inherits the assistant's credibility. Single agent; attacker text re-presented as trusted assistant output." },
+  { name: "Copilot Studio info disclosure", cve: "CVE-2026-21520", ref: "CVE-2026-21520", closest: "not assessed", src: "NVD", detail: "NVD: information disclosure in Copilot Studio (CWE-77, CVSS 7.5). Secondary reports describe prompt injection through a SharePoint form; no primary write-up located, so no pattern is assigned." },
 ];
 
 const LAUNDERING_HOPS = [
@@ -452,7 +452,7 @@ function CopilotTable() {
   return (
     <div>
       <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 }}>
-        Every significant <CopilotIcon size={14} style={{ margin: "0 4px" }} /> Copilot breach was a cross-boundary trust failure — exactly what deep-xpia benchmarks. Click any row.
+        Public <CopilotIcon size={14} style={{ margin: "0 4px" }} /> Copilot incidents so far involved a single agent: the same cross-boundary trust failures deep-xpia measures across delegation hops. "Closest pattern" is our interpretation, not a claim from the sources. Click any row.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {COPILOT.map((inc, i) => (
@@ -464,14 +464,15 @@ function CopilotTable() {
                 {inc.cve && <span style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, background: C.border, padding: "2px 6px", borderRadius: 3 }}>{inc.cve}</span>}
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontFamily: C.mono, fontSize: 11, color: C.red }}>{inc.dxpia}</span>
-                <span style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, background: C.border, padding: "2px 6px", borderRadius: 3 }}>depth {inc.depth}</span>
+                <span style={{ fontFamily: C.mono, fontSize: 11, color: C.red }}>{inc.closest}</span>
+                <span style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, background: C.border, padding: "2px 6px", borderRadius: 3 }}>single agent</span>
               </div>
             </div>
             {open === i && (
               <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
-                <div style={{ fontFamily: C.mono, fontSize: 10, color: C.red, marginBottom: 4 }}>{inc.dname}</div>
+                <div style={{ fontFamily: C.mono, fontSize: 10, color: C.red, marginBottom: 4 }}>closest pattern (our interpretation): {inc.closest}</div>
                 <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>{inc.detail}</div>
+                <div style={{ fontFamily: C.mono, fontSize: 10, color: C.faint, marginTop: 6 }}>source: {inc.src}</div>
               </div>
             )}
           </div>
@@ -581,7 +582,7 @@ export default function DeepXPIA() {
         <LaunderingViz />
       </Section>
 
-      <Section id="copilot" label="Copilot incident mapping" icon>
+      <Section id="copilot" label="Copilot incidents (context)" icon>
         <CopilotTable />
       </Section>
 

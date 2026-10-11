@@ -137,7 +137,7 @@ external:
     url: https://nvd.nist.gov/vuln/detail/CVE-2025-32711
     accessed: 2026-10-10
     status: verified
-    note: "mapping to DXPIA-006 and 'laundering across agent hops' are interpretation; needs a citable write-up (gate G3/G-incidents)"
+    note: "NVD facts verified. DXPIA mapping changed 2026-10-11: single-agent incident, closest pattern DXPIA-003 (our interpretation); 'laundering across agent hops' withdrawn, the case study (arXiv:2509.10540) describes chained filter bypasses in one agent"
   - id: CVE-2024-38206
     what: "NVD: SSRF protection bypass in Copilot Studio (CVSS 8.5 / 6.5)"
     url: https://nvd.nist.gov/vuln/detail/CVE-2024-38206
@@ -155,13 +155,77 @@ external:
     url: https://nvd.nist.gov/vuln/detail/CVE-2026-21520
     accessed: 2026-10-10
     status: verified
-    note: "CVSS 7.5 matches; 'prompt injection' type is not in the NVD description (site/taxonomy call it prompt injection)"
+    note: "NVD facts only (CWE-77, CVSS 7.5). Removed 2026-10-11 as a DXPIA-008 source and as a DXPIA-005 mapping on the site: NVD does not describe prompt injection and no primary write-up was located; site keeps the NVD facts with no pattern assigned"
   - id: CVE-2026-35435
     what: "NVD: improper access control in Azure AI Foundry M365 published agents, elevation of privilege (CVSS 8.6 / 10.0)"
     url: https://nvd.nist.gov/vuln/detail/CVE-2026-35435
     accessed: 2026-10-10
+    status: withdrawn
+    note: "removed as a DXPIA-008 source 2026-10-11: an access-control flaw in Azure AI Foundry M365 published agents, not registry injection"
+  - id: arXiv:2509.10540
+    what: "Reddy, Gujral: EchoLeak case study (CVE-2025-32711), zero-click exfiltration from Microsoft 365 Copilot via one crafted email and chained filter bypasses; AAAI Symposium Series 2025"
+    url: https://arxiv.org/abs/2509.10540
+    accessed: 2026-10-11
     status: verified
-    note: "taxonomy calls it 'Copilot agent runtime'; NVD names Azure AI Foundry M365 published agents"
+  - id: unit42-session-smuggling-2025
+    what: "Unit 42 (Royce Lu, Jay Chen), 'When AI Agents Go Rogue: Agent Session Smuggling Attack in A2A Systems', 2025-10-31; PoC 2: a research agent's hidden instructions make a financial assistant call buy_stock"
+    url: https://unit42.paloaltonetworks.com/agent-session-smuggling-in-agent2agent-systems/
+    accessed: 2026-10-11
+    status: verified
+    note: "primary source for DXPIA-001 (replaces 'CSA session smuggling PoC (March 2026)'); the session_smuggling scenario follows this PoC and credits it"
+  - id: csa-okta-delegation-2026
+    what: "Kolhe (Okta), 'Control the chain, secure the system: fixing AI agent delegation', Cloud Security Alliance, 2026-03-25; summarizes the Unit 42 PoC and Rehberger's cross-agent escalation"
+    url: https://cloudsecurityalliance.org/articles/control-the-chain-secure-the-system-fixing-ai-agent-delegation
+    accessed: 2026-10-11
+    status: verified
+    note: "secondary; cite the primaries"
+  - id: rehberger-gemini-memory-2025
+    what: "Rehberger (Embrace The Red), 'Hacking Gemini's Memory with Prompt Injection and Delayed Tool Invocation', 2025-02-10"
+    url: https://embracethered.com/blog/posts/2025/gemini-memory-persistence-prompt-injection/
+    accessed: 2026-10-11
+    status: verified
+    note: "source for DXPIA-002 (memory) and DXPIA-007 (delayed trigger)"
+  - id: rehberger-cross-agent-privesc-2025
+    what: "Rehberger (Embrace The Red), 'Cross-Agent Privilege Escalation: When Agents Free Each Other', 2025-09-24: an injected GitHub Copilot writes Claude Code config files"
+    url: https://embracethered.com/blog/posts/2025/cross-agent-privilege-escalation-agents-that-free-each-other/
+    accessed: 2026-10-11
+    status: verified
+    note: "replaces 'CSA cross-agent privilege escalation (Sept 2025)'; related to DXPIA-005 but a different mechanism (config rewrite, not delegation privilege differential)"
+  - id: invariant-tool-poisoning-2025
+    what: "Beurer-Kellner, Fischer (Invariant Labs), 'MCP Security Notification: Tool Poisoning Attacks', 2025-04-01"
+    url: https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
+    accessed: 2026-10-11
+    status: verified
+    note: "DXPIA-008 source (replaces BlueRock / Trend Micro exposure statistics, which were off-topic; BlueRock had no located primary)"
+  - id: invariant-whatsapp-mcp-2025
+    what: "Beurer-Kellner, Fischer (Invariant Labs), 'WhatsApp MCP Exploited: Exfiltrating your message history via MCP', 2025-04-07"
+    url: https://invariantlabs.ai/blog/whatsapp-mcp-exploited
+    accessed: 2026-10-11
+    status: verified
+    note: "DXPIA-003 source (cross-server exfiltration)"
+  - id: arXiv:2508.14925
+    what: "MCPTox: tool poisoning benchmark, 1,312 cases over 353 tools in 45 real MCP servers"
+    url: https://arxiv.org/abs/2508.14925
+    accessed: 2026-10-11
+    status: verified
+  - id: zenity-agentflayer-2025
+    what: "Sharbat (Zenity Labs), 'AgentFlayer: When AIjacking Leads to Full Data Exfiltration in Copilot Studio', 2025-07-07"
+    url: https://labs.zenity.io/p/a-copilot-studio-story-2-when-aijacking-leads-to-full-data-exfiltration-bc4a
+    accessed: 2026-10-11
+    status: verified
+    note: "site incident; closest pattern DXPIA-003 is our interpretation (single agent)"
+  - id: varonis-reprompt-2026
+    what: "Taler (Varonis Threat Labs), 'Reprompt: The Single-Click Microsoft Copilot Attack that Silently Steals Your Personal Data'"
+    url: https://www.varonis.com/blog/reprompt
+    accessed: 2026-10-11
+    status: verified
+    note: "page shows only 'last updated 2026-06-16'; news coverage dates the disclosure to January 2026. Site incident; closest pattern DXPIA-004 is our interpretation"
+  - id: permiso-autophish-2026
+    what: "Ahmeti (Permiso), 'CO-PILOT, DISENGAGE AUTOPHISH: The New Phishing Surface Hiding Inside AI Email Summaries', 2026-03-12"
+    url: https://permiso.io/blog/copilot-prompt-injection-ai-email-phishing
+    accessed: 2026-10-11
+    status: verified
+    note: "site incident; closest pattern DXPIA-006 is our interpretation. The page embeds an instruction aimed at AI readers (ignored)"
   - id: OWASP-ASI-2026
     what: "ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain Vulnerabilities, ASI05 Unexpected Code Execution, ASI06 Memory & Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue Agents (published 2025-12-09)"
     url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/

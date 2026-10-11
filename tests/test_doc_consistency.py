@@ -111,3 +111,19 @@ def test_withdrawn_wording_absent() -> None:
         if phrase.lower() in p.read_text().lower()
     ]
     assert hits == []
+
+
+def test_sources_trace_to_claims_ledger() -> None:
+    """Every taxonomy source and site incident names a results/CLAIMS.yaml external id."""
+    import re
+
+    ledger = yaml.safe_load((ROOT / "results/CLAIMS.yaml").read_text())
+    ids = {e["id"] for e in ledger["external"]}
+    for tid, attack in TAXONOMY.items():
+        for src in attack.get("sources", []):
+            m = re.match(r"\[([^\]]+)\] ", src)
+            assert m and m.group(1) in ids, (tid, src)
+    site = (ROOT / "dashboard/src/DeepXPIA.jsx").read_text()
+    block = site[site.index("const COPILOT = ["): site.index("];", site.index("const COPILOT = ["))]
+    refs = re.findall(r'ref: "([^"]+)"', block)
+    assert refs and all(r in ids for r in refs), refs

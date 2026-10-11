@@ -7,16 +7,16 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 169 passing](https://img.shields.io/badge/tests-169_passing-brightgreen.svg)](tests/)
+[![Tests: 170 passing](https://img.shields.io/badge/tests-170_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
 
-Recent Microsoft 365 Copilot security incidents weren't bad prompts. They were cross-boundary trust failures between email, documents, SharePoint, Teams, agents, tools, and memory. deep-xpia benchmarks those failures, and maps to public ones:
+Recent Microsoft 365 Copilot security incidents weren't bad prompts. They were cross-boundary trust failures between email, documents, SharePoint, Teams, agents, tools, and memory. The public cases so far involved a single agent; deep-xpia measures the same failures when they cross agent-to-agent delegation hops.
 
-| Incident | CVE / Ref | DXPIA class |
+| Incident | CVE / Ref | Closest DXPIA pattern (our interpretation) |
 |---|---|---|
-| EchoLeak | [CVE-2025-32711](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-32711) | DXPIA-006 |
+| EchoLeak | [CVE-2025-32711](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-32711); case study [arXiv:2509.10540](https://arxiv.org/abs/2509.10540) | DXPIA-003 (single agent: one email in, data out through chained filter bypasses) |
 
 ![deep-xpia: multi-hop cross-prompt injection across agent delegation](docs/images/deep_xpia_readme_visual.svg)
 
@@ -192,7 +192,7 @@ deep-xpia/
   taxonomy/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
-  tests/            169 tests
+  tests/            170 tests
 ```
 
 ## contributing

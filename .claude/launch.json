@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "deepxpia-demo",
+      "runtimeExecutable": ".venv/bin/deepxpia",
+      "runtimeArgs": ["demo"],
+      "port": 8000
+    }
+  ]
+}

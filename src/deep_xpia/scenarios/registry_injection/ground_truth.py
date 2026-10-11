@@ -90,9 +90,7 @@ GROUND_TRUTH = {
     ),
 
     "references": [
-        "BlueRock 7000 MCP server audit (2026): 36.7% SSRF-vulnerable",
-        "Trend Micro: 492 MCP servers with zero authentication (2026)",
-        "CVE-2026-35435: Copilot agent runtime (CVSS 8.6)",
-        "CVE-2026-21520: Copilot Studio prompt injection (CVSS 7.5)",
+        "Invariant Labs, MCP Security Notification: Tool Poisoning Attacks (2025-04-01)",
+        "MCPTox, arXiv:2508.14925: tool poisoning benchmark on real-world MCP servers",
     ],
 }
