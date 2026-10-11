@@ -7,14 +7,18 @@ agent count, and defense state.
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import random
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 from rich.progress import track
 
 from deep_xpia.bench.injection_library import (
+    encode_unicode,
     sample_attack_injection,
     sample_clean_task,
     sample_poisoned_manifest,
@@ -27,6 +31,7 @@ from deep_xpia.bench.schema import (
     HopMechanism,
     InjectionPosition,
     InjectionSpec,
+    InjectionTechnique,
     PayloadType,
     Severity,
     TaxonomyID,
@@ -135,10 +140,32 @@ USER_TASKS: dict[TaxonomyID, list[str]] = {
 }
 
 
+def _carries(injection: InjectionSpec, manifest: dict[str, Any] | None, canary: str) -> bool:
+    """Does the payload the agent sees (manifest for DXPIA-008, else the injection) contain the canary?"""
+    if manifest is not None:
+        return canary in json.dumps(manifest)
+    if injection.technique == InjectionTechnique.BASE64_ENCODED and injection.encoded_content:
+        return canary in base64.b64decode(injection.encoded_content).decode()
+    if injection.technique == InjectionTechnique.UNICODE_ENCODED:
+        return encode_unicode(canary) in injection.content
+    return canary in injection.content
+
+
 class BenchGenerator:
-    def __init__(self, seed: int = 42) -> None:
+    def __init__(self, seed: int = 42, canaries: bool = True) -> None:
         self.rng = random.Random(seed)
+        self.seed = seed
+        self.canaries = canaries
         self._counter: dict[str, int] = {}
+        self._canary_counter: dict[str, int] = {}
+
+    def _canary(self, tid: str) -> str | None:
+        """Case-unique attacker-identifier tag; hashed, so the random stream is unchanged."""
+        if not self.canaries:
+            return None
+        n = self._canary_counter.get(tid, 0)
+        self._canary_counter[tid] = n + 1
+        return "cnry-" + hashlib.sha256(f"{self.seed}:{tid}:{n}".encode()).hexdigest()[:8]
 
     def _next_id(self, prefix: str) -> str:
         n = self._counter.get(prefix, 0)
@@ -162,7 +189,10 @@ class BenchGenerator:
         topo_type = topology.topology_type
         depth = topology.hop_count
 
-        injection = sample_attack_injection(self.rng, tid)
+        canary = self._canary(tid)
+        # DXPIA-008 delivers the manifest, not the prompt text: only the manifest carries the canary
+        prompt_canary = None if taxonomy_id == TaxonomyID.DXPIA_008 else canary
+        injection = sample_attack_injection(self.rng, tid, canary=prompt_canary)
 
         # DXPIA-008: override injection position to TOOL_METADATA
         tool_metadata_val: dict | None = None
@@ -174,7 +204,7 @@ class BenchGenerator:
                 payload_type=injection.payload_type,
                 encoded_content=injection.encoded_content,
             )
-            tool_metadata_val = sample_poisoned_manifest(self.rng)
+            tool_metadata_val = sample_poisoned_manifest(self.rng, canary=canary)
 
         technique_abbr = injection.technique.value[:3].replace("_", "")
         payload_abbr = injection.payload_type.value[:4].replace("_", "")
@@ -214,6 +244,7 @@ class BenchGenerator:
             detection_hop=inject_hop + 1,
         )
         user_task = self.rng.choice(USER_TASKS.get(taxonomy_id, ["Complete the delegated task."]))
+        metadata = {"canary": canary if canary and _carries(injection, tool_metadata_val, canary) else None}
 
         return BenchCase(
             id=case_id,
@@ -228,6 +259,7 @@ class BenchGenerator:
             defense_state=DefenseState.UNDEFENDED,
             user_task=user_task,
             tool_metadata=tool_metadata_val,
+            metadata=metadata,
         )
 
     def _generate_clean_case(self) -> BenchCase:

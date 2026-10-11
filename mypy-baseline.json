@@ -1,7 +1,6 @@
 {
   "src/deep_xpia/adapters/native.py": 22,
   "src/deep_xpia/bench/generator.py": 1,
-  "src/deep_xpia/bench/injection_library.py": 1,
   "src/deep_xpia/bench/metrics.py": 1,
   "src/deep_xpia/bench/report.py": 1,
   "src/deep_xpia/bench/topologies.py": 31,

@@ -6,7 +6,9 @@ Each entry is a template that gets rendered with pipeline-specific context.
 from __future__ import annotations
 
 import base64
+import copy
 import random
+from typing import Any
 
 from deep_xpia.bench.schema import (
     InjectionPosition,
@@ -163,8 +165,14 @@ def sample_attack_injection(
     technique: InjectionTechnique | None = None,
     payload_type: PayloadType | None = None,
     position: InjectionPosition | None = None,
+    canary: str | None = None,
 ) -> InjectionSpec:
-    """Sample a random attack injection for the given taxonomy ID."""
+    """Sample a random attack injection for the given taxonomy ID.
+
+    canary: appended to the attacker identifier ({target}, e.g. a domain) so a
+    case's attacker goal can be traced in outputs and tool calls. It changes no
+    wording and consumes no randomness; templates without {target} carry none.
+    """
     if technique is None:
         technique = rng.choice(list(InjectionTechnique))
     if payload_type is None:
@@ -190,6 +198,8 @@ def sample_attack_injection(
             ])
 
     target = rng.choice(TARGETS)
+    if canary:
+        target = f"{target}-{canary}"
     action = rng.choice(ACTIONS)
     data = rng.choice(DATA_FIELDS)
 
@@ -320,9 +330,26 @@ POISONED_MANIFESTS = [
 ]
 
 
-def sample_poisoned_manifest(rng: random.Random) -> dict:
-    """Return a realistic MCP server manifest with injection in metadata."""
-    return rng.choice(POISONED_MANIFESTS)
+ATTACKER_DOMAIN = "attacker.example.com"
+
+
+def _with_canary(value: object, canary: str) -> object:
+    if isinstance(value, str):
+        return value.replace(ATTACKER_DOMAIN, f"{canary}.{ATTACKER_DOMAIN}")
+    if isinstance(value, list):
+        return [_with_canary(v, canary) for v in value]
+    if isinstance(value, dict):
+        return {k: _with_canary(v, canary) for k, v in value.items()}
+    return value
+
+
+def sample_poisoned_manifest(rng: random.Random, canary: str | None = None) -> dict[str, Any]:
+    """Return a realistic MCP server manifest with injection in metadata (a copy).
+
+    canary: prefixed to the attacker domain where the manifest names one.
+    """
+    manifest = copy.deepcopy(rng.choice(POISONED_MANIFESTS))
+    return _with_canary(manifest, canary) if canary else manifest  # type: ignore[return-value]
 
 
 def sample_clean_task(rng: random.Random) -> str:
