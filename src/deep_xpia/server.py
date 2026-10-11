@@ -100,7 +100,7 @@ def create_app() -> FastAPI:
                     "title": "Intent Laundering",
                     "hop_mechanism": "adversarial_refinement",
                     "depth": IL_TOPOLOGY.hop_count,
-                    "description": "Intermediate agent makes injection harder to detect.",
+                    "description": "Intermediate agent rephrases the injection so a keyword detector misses it (scripted).",
                 },
                 {
                     "id": "registry_injection",

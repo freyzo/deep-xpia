@@ -93,6 +93,11 @@ BANNED_PHRASES = [
     "hypothesis (from arXiv:2503.12188)",  # the paper states no depth hypothesis
     "challenges arXiv:2503.12188",
     "finding confirmed",
+    "trust-boundary position and attack type do",  # withdrawn claim L10
+    "evades prompt-stream defenses",  # v2 delivered DXPIA-008 as a prompt injection (L6)
+    "headline finding",
+    "the harder it is to detect",
+    "improves as it propagates",
 ]
 
 

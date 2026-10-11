@@ -13,18 +13,19 @@ Algorithm:
      agent's permitted action set?
   3. Combined drift score: weighted combination of NLI + scope signals.
 
-Expected performance:
+Design expectation (not a measurement):
   - Strong against: DXPIA-001 (explicit smuggled actions raise drift score)
   - Weak against: DXPIA-006 (laundered instructions look like natural intent
     extensions; drift score stays below threshold)
+  The v2 live run did not bear this out: the keyword heuristic flagged
+  DXPIA-006 in 0.40 of cases and DXPIA-001 in 0.16 (n=25 each).
 
 HONEST LIMITATION:
-  Intent verification degrades against intent laundering (DXPIA-006) because
-  the intermediate agent reformats the injection to be semantically similar
-  to the original intent. This is consistent with SentinelAgent's adversarial
-  intent paraphrasing problem (arXiv:2604.02767, Section VII).
-  The deeper the injection propagates, the harder it is to detect -- which
-  is exactly why we call it deep-xpia.
+  A laundered instruction that an intermediate agent rephrased as natural
+  text can pass a keyword or semantic check (DXPIA-006, per case). This is
+  related to SentinelAgent's adversarial intent paraphrasing limitation
+  (arXiv:2604.02767, Sec. VII-D). Across the v2 live run, detection did not
+  fall with depth.
 """
 
 from __future__ import annotations

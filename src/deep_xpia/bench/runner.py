@@ -163,11 +163,11 @@ class BenchRunner:
         base_asr = asr_table.get(tid, {}).get(self.defense_state, 0.5)
         base_tpr = tpr_table.get(tid, {}).get(self.defense_state, 0.5)
 
-        # DDA effect: detection degrades with depth (the headline finding)
+        # simulated prior: detection degrades with depth (our hypothesis; it did not replicate live)
         depth_penalty = max(0, case.depth - 2) * 0.05  # 5% per extra hop beyond 2
         adjusted_tpr = max(0.0, base_tpr - depth_penalty)
 
-        # DXPIA-006 intent laundering: detection degrades faster
+        # simulated prior: DXPIA-006 (intent laundering) degrades twice as fast
         if tid == "DXPIA-006":
             adjusted_tpr = max(0.0, base_tpr - depth_penalty * 2)
 

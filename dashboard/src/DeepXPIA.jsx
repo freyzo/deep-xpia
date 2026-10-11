@@ -43,7 +43,7 @@ const TAXONOMY = [
   { id: "DXPIA-003", name: "Tool chain cascade", mech: "data flow cascade", depth: 3, owasp: "ASI08, ASI02", desc: "Injection enters at hop 1, executes at hop 2, exfiltrates at hop 3. No single agent acts outside permissions. The vulnerability is the chain itself." },
   { id: "DXPIA-004", name: "Chain re-routing", mech: "control plane injection", depth: 2, owasp: "ASI01, ASI07", desc: "The compromised agent modifies the delegation topology — instructing the orchestrator to add an attacker-controlled agent or skip a security-checking agent." },
   { id: "DXPIA-005", name: "Scope escalation", mech: "privilege differential", depth: 2, owasp: "ASI03", desc: "Agent A has {read}. It delegates to Agent B with {read, write}. Agent A includes an instruction causing B to exercise write on A's behalf — privilege amplified through delegation." },
-  { id: "DXPIA-006", name: "Intent laundering", mech: "adversarial refinement", depth: 3, owasp: "ASI01, ASI07", desc: "An intermediate agent reformats the malicious instruction — stripping detection markers, rephrasing as natural output. Attack quality improves as it propagates." },
+  { id: "DXPIA-006", name: "Intent laundering", mech: "adversarial refinement", depth: 3, owasp: "ASI01, ASI07", desc: "An intermediate agent reformats the malicious instruction — stripping detection markers, rephrasing as natural output, so a keyword detector at the next hop can miss it. Per case only: measured live, detection did not fall with depth." },
   { id: "DXPIA-007", name: "Delayed trigger", mech: "conditional activation", depth: 2, owasp: "ASI06, ASI01", desc: "Injection enters agent A but stays dormant until a trigger condition in a future delegation. Dormant form is hard to detect; attribution to the original source becomes difficult." },
   { id: "DXPIA-008", name: "Registry injection", mech: "trust boundary sideload", depth: 1, owasp: "ASI04, ASI01", desc: "Injection enters at the tool discovery layer - MCP manifests, plugin metadata, tool descriptions - before any user prompt. The agent is compromised at registration time, upstream of the entire delegation chain." },
 ];
@@ -419,7 +419,7 @@ function LaunderingViz() {
   return (
     <div>
       <p style={{ fontSize: 13, color: C.muted, marginBottom: 18, lineHeight: 1.7 }}>
-        The injection starts loud. By hop 2, an intermediate agent has stripped all markers and rephrased the payload as natural output. Detection sees nothing wrong — the attack <em style={{ color: C.text }}>improves</em> as it propagates.
+        Scripted illustration: the injection starts loud. By hop 2, an intermediate agent has stripped the markers and rephrased the payload as natural output, so a keyword detector <em style={{ color: C.text }}>sees nothing wrong</em>. Measured live across the benchmark, detection did not fall with depth.
       </p>
       <div style={{ display: "flex", flexDirection: "column" }}>
         {LAUNDERING_HOPS.map((h, i) => (
