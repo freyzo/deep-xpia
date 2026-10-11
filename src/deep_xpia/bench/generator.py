@@ -242,7 +242,7 @@ class BenchGenerator:
         self,
         n_attack: int = 200,
         n_clean: int = 100,
-        output_path: str = "deepxpiabench-v2.jsonl",
+        output_path: str = "deepxpiabench-v3.jsonl",
     ) -> list[BenchCase]:
         """Generate and write the benchmark dataset."""
         cases: list[BenchCase] = []

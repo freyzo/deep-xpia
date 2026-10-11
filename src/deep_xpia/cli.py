@@ -18,7 +18,9 @@ app.add_typer(bench_app, name="bench")
 
 @bench_app.command("run")
 def bench_run(
-    dataset: str = typer.Option("deepxpiabench-v1.jsonl", help="Dataset file (v1 ships with the repo)"),
+    dataset: str = typer.Option(
+        "deepxpiabench-v2.jsonl", help="Dataset file (v2 = the 300-case set behind the README results)"
+    ),
     target: str = typer.Option("native", help="Target adapter: native|langgraph|crewai|autogen"),
     defense: str = typer.Option("none", help="Defense: none|intent-verify|taint|scope|dlp|context-budget|all"),
     model: str = typer.Option("claude-haiku-4-5-20251001", help="Agent model"),
@@ -43,13 +45,21 @@ def bench_run(
 
 @bench_app.command("generate")
 def bench_generate(
-    output: str = typer.Option("deepxpiabench-v2.jsonl", help="Output file"),
+    output: str = typer.Option("deepxpiabench-v3.jsonl", help="Output file"),
     n_attack: int = typer.Option(200, help="Number of attack cases"),
     n_clean: int = typer.Option(100, help="Number of clean cases"),
     seed: int = typer.Option(42, help="Random seed"),
+    force: bool = typer.Option(False, "--force", help="Overwrite an existing output file"),
 ) -> None:
     """Generate the DeepXPIABench dataset."""
+    from pathlib import Path
+
     from deep_xpia.bench.generator import BenchGenerator
+
+    # the shipped datasets are the inputs to published results; never clobber silently
+    if Path(output).exists() and not force:
+        console.print(f"[red]{output} already exists; pass --force to overwrite[/red]")
+        raise typer.Exit(code=1)
 
     gen = BenchGenerator(seed=seed)
     gen.generate(n_attack=n_attack, n_clean=n_clean, output_path=output)

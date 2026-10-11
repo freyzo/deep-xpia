@@ -64,7 +64,7 @@ pip install deep-xpia
 deepxpia demo
 
 # run the benchmark
-deepxpia bench generate          # generate 300 cases (v2)
+deepxpia bench generate          # fresh dataset -> deepxpiabench-v3.jsonl (v2, used for the results, ships with the repo)
 deepxpia bench run --defense none
 deepxpia bench run --defense intent-verify
 deepxpia bench run --defense context-budget
