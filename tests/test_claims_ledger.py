@@ -1,7 +1,7 @@
 """results/CLAIMS.yaml values must recompute from the frozen raw runs.
 
-Raw live runs are not in git (see results/raw/v2-live-2026-06/MANIFEST.yaml);
-the recompute tests skip when they are absent.
+Raw live runs are tracked in results/raw/v2-live-2026-06/ (MANIFEST.yaml);
+the recompute tests skip only if they are absent (e.g. a partial checkout).
 """
 
 from __future__ import annotations

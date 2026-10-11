@@ -39,6 +39,8 @@ report/
 *.jsonl
 !results/archive/v1/deepxpiabench-v1.jsonl
 !deepxpiabench-v2.jsonl
+# frozen v2 live runs behind the published results (checksums: results/FROZEN_SHA256SUMS)
+!results/raw/v2-live-2026-06/*.jsonl
 
 # Environment / secrets
 .env
