@@ -1,3 +1,0 @@
-python: .venv/bin/python
-scratch: ${CLAUDE_SCRATCHPAD}
-repo_root: .

@@ -61,6 +61,7 @@ dashboard/build/
 
 # Docker
 .docker/
+_0/
 
 # mypy
 .mypy_cache/
