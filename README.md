@@ -132,9 +132,7 @@ Full taxonomy with literature sources: [taxonomy/taxonomy.yaml](taxonomy/taxonom
 
 ### live (measured)
 
-Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent-verify`, and `all` have real defense primitives wired into the live path; `scope`, `dlp`, and `context-budget` are not yet implemented in live mode and error rather than fake a number. Headline ASR/TPR/FPR are in [the finding](#the-finding); the terminal output and per-taxonomy breakdown are below.
-
-![live run terminal output: three 300-case runs (none, intent-verify, all)](docs/images/live-run.png)
+Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent-verify`, and `all` have real defense primitives wired into the live path; `scope`, `dlp`, and `context-budget` are not yet implemented in live mode and error rather than fake a number. Headline ASR/TPR/FPR are in [the finding](#the-finding); the per-taxonomy breakdown is below, and detection by depth is in [results/depth_analysis.md](results/depth_analysis.md).
 
 Live TPR by taxonomy, all defenses: DXPIA-006 1.00, DXPIA-003 0.92, DXPIA-001 0.84, DXPIA-007 0.84, DXPIA-004 0.76, DXPIA-002 0.72, DXPIA-005 0.64, **DXPIA-008 0.40** (and 0.00 at depth 1). Registry injection is the hardest case even with everything stacked, consistent with it entering upstream of the defenses.
 
