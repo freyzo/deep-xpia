@@ -125,29 +125,33 @@ def create_app() -> FastAPI:
                 if _connections.get(chain_id):
                     break
                 await asyncio.sleep(0.1)
+            result: Any
+            events: list[Any]
             try:
                 if scenario_id == "session_smuggling":
                     from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
-                    p = SessionSmugglingPipeline(attack=attack, defense=defense)
-                    result = p.run(chain_id=chain_id)
+                    result = SessionSmugglingPipeline(attack=attack, defense=defense).run(
+                        chain_id=chain_id
+                    )
                     events = result.events
                 elif scenario_id == "memory_poisoning":
                     from scenarios.memory_poisoning.pipeline import MemoryPoisoningPipeline
                     # the scenario's defense is taint-aware memory
-                    p = MemoryPoisoningPipeline(
+                    result = MemoryPoisoningPipeline(
                         attack=attack, taint_aware_memory=defense in ("taint", "all")
-                    )
-                    result = p.run()
+                    ).run()
                     events = result.session1_events + result.session2_events
                 elif scenario_id == "intent_laundering":
                     from scenarios.intent_laundering.pipeline import IntentLaunderingPipeline
-                    p = IntentLaunderingPipeline(attack=attack, defense=defense)
-                    result = p.run(chain_id=chain_id)
+                    result = IntentLaunderingPipeline(attack=attack, defense=defense).run(
+                        chain_id=chain_id
+                    )
                     events = result.events
                 else:  # registry_injection
                     from scenarios.registry_injection.pipeline import RegistryInjectionPipeline
-                    p = RegistryInjectionPipeline(attack=attack, defense=defense)
-                    result = p.run(chain_id=chain_id)
+                    result = RegistryInjectionPipeline(attack=attack, defense=defense).run(
+                        chain_id=chain_id
+                    )
                     events = result.events
 
                 # Scenario event dataclasses differ: DelegationEvent has from/to_agent +
@@ -155,8 +159,8 @@ def create_app() -> FastAPI:
                 # SessionEvent has agent + content. Normalize here.
                 prev_agent = "user"
                 for ev in events:
-                    to_agent = getattr(ev, "to_agent", None) or getattr(ev, "agent", "")
-                    from_agent = getattr(ev, "from_agent", None) or prev_agent
+                    to_agent = str(getattr(ev, "to_agent", None) or getattr(ev, "agent", ""))
+                    from_agent = str(getattr(ev, "from_agent", None) or prev_agent)
                     prev_agent = to_agent
                     content = next(
                         (v for v in (getattr(ev, a, None) for a in
@@ -164,9 +168,10 @@ def create_app() -> FastAPI:
                          if v is not None),
                         "",
                     )
-                    drift = getattr(ev, "drift_score", None)
-                    if drift is None:  # LaunderingHopEvent
-                        drift = getattr(ev, "drift_score_raw", 0.0)
+                    raw_drift: Any = getattr(ev, "drift_score", None)
+                    if raw_drift is None:  # LaunderingHopEvent
+                        raw_drift = getattr(ev, "drift_score_raw", 0.0)
+                    drift = float(raw_drift)
                     payload = ChainEvent(
                         event_type=EventType.DELEGATION_RESULT,
                         chain_id=chain_id,
