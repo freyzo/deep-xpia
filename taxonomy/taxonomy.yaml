@@ -175,10 +175,12 @@ attacks:
         detail: "Laundered instruction passes semantic similarity checks"
     confused_deputies: 2
     key_finding: |
-      Detection at hop 2 is HARDER than detection at hop 1. This is the
-      arXiv:2503.12188 finding: "intermediate trusted agents actively reformat
-      malicious instructions to strip detection markers." deep-xpia's DDA
-      metric quantifies this degradation.
+      Per case, detection at hop 2 can be harder than at hop 1 (the scenario's
+      laundered text carries no detector keywords). In the v2 live run this did
+      not produce population-level decay: detection did not fall with depth
+      (results/depth_analysis.md, results/reanalysis/). Related: arXiv:2503.12188
+      (Sec. 4) reports that laundering a request through another agent
+      "significantly changes its presentation".
     reference_scenario: scenarios/intent_laundering/
     sources:
       - "arXiv:2503.12188 intermediate agent reformatting finding"

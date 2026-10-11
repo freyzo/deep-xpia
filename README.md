@@ -48,7 +48,7 @@ This is what separates deep-xpia from single-agent XPIA tools like mcp-scan or p
 
 ## why this exists
 
-Single-agent XPIA tools (mcp-scan, promptfoo) test how vulnerable one model is to one prompt; they don't measure what happens when injections cross delegation boundaries. [ACIArena](https://arxiv.org/abs/2604.07775) benchmarks general cascading injection across 6 frameworks but doesn't focus on confused-deputy patterns. [SentinelAgent](https://arxiv.org/abs/2604.02767) formalizes delegation properties but ships no OSS implementation. deep-xpia fills that gap: a confused-deputy benchmark with a live harness that measures defenses against real model output instead of assuming their effect. Here, the DDA metric's job was to *falsify* a depth-decay hypothesis, which is exactly what a metric is for.
+Single-agent XPIA tools (mcp-scan, promptfoo) test how vulnerable one model is to one prompt; they don't measure what happens when injections cross delegation boundaries. [ACIArena](https://arxiv.org/abs/2604.07775) benchmarks general cascading injection across 6 frameworks but doesn't focus on confused-deputy patterns. [SentinelAgent](https://arxiv.org/abs/2604.02767) formalizes delegation properties (P1-P7) and states its code is open source, but links no repository (checked 2026-10-10). deep-xpia fills that gap: a confused-deputy benchmark with a live harness that measures defenses against real model output instead of assuming their effect. Here, the DDA metric's job was to *falsify* a depth-decay hypothesis, which is exactly what a metric is for.
 
 ## quickstart
 

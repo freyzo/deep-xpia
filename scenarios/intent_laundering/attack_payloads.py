@@ -4,9 +4,10 @@ The key property: these payloads are IMPROVED by the intermediate agent
 (code_review_agent). The output of hop 2 is more natural-looking than
 the input at hop 1, making detection HARDER at each hop.
 
-This is the arXiv:2503.12188 finding:
-"intermediate trusted agents actively reformat malicious instructions
-to strip detection markers."
+Related: Triedman et al. (arXiv:2503.12188, Sec. 4) observe that "laundering
+the request through another agent's metadata significantly changes its
+presentation". Stripping detection markers is this scenario's construction,
+not a claim from that paper.
 """
 
 from __future__ import annotations
