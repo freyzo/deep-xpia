@@ -41,6 +41,12 @@ class BenchRunner:
         limit: int | None = None,
     ) -> None:
         self.dataset_path = Path(dataset_path)
+        if target != "native":
+            # framework adapters implement adapters.base.MASAdapter; none ship yet
+            raise ValueError(
+                f"target {target!r} is not implemented; only 'native' is available "
+                "(see src/deep_xpia/adapters/base.py to add one)"
+            )
         self.target = target
         self.defense_state = self._parse_defense(defense)
         self.model = model

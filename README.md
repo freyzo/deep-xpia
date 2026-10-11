@@ -74,8 +74,9 @@ deepxpia bench run --defense all
 ## use as a benchmark
 
 ```bash
-# against your own LangGraph pipeline
-deepxpia bench run --target langgraph --dataset deepxpiabench-v2.jsonl
+# against the built-in harness (framework adapters such as LangGraph are not
+# shipped yet; see src/deep_xpia/adapters/base.py for the protocol)
+deepxpia bench run --target native --dataset deepxpiabench-v2.jsonl
 
 # live mode (real LLM calls, ~$8-15 for 300 cases)
 DEEPXPIA_LIVE=1 deepxpia bench run --model claude-haiku-4-5-20251001

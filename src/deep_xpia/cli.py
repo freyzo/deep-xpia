@@ -21,7 +21,7 @@ def bench_run(
     dataset: str = typer.Option(
         "deepxpiabench-v2.jsonl", help="Dataset file (v2 = the 300-case set behind the README results)"
     ),
-    target: str = typer.Option("native", help="Target adapter: native|langgraph|crewai|autogen"),
+    target: str = typer.Option("native", help="Target adapter (only 'native' ships today)"),
     defense: str = typer.Option("none", help="Defense: none|intent-verify|taint|scope|dlp|context-budget|all"),
     model: str = typer.Option("claude-haiku-4-5-20251001", help="Agent model"),
     output: str = typer.Option("results.jsonl", help="Output file"),
