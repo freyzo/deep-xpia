@@ -28,7 +28,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from scenarios.memory_poisoning.attack_payloads import (
+from deep_xpia.scenarios.memory_poisoning.attack_payloads import (
     ATTACK_PAYLOADS,
     CLEAN_EMAIL,
 )

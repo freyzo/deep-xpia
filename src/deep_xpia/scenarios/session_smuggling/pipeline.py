@@ -22,7 +22,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from scenarios.session_smuggling.attack_payloads import (
+from deep_xpia.scenarios.session_smuggling.attack_payloads import (
     ATTACK_PAYLOADS,
     CLEAN_DATA,
     LEGITIMATE_TASK,

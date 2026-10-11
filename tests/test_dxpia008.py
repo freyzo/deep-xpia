@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import pytest
 
-from scenarios.registry_injection.attack_payloads import ATTACK_PAYLOADS, CLEAN_MANIFEST
-from scenarios.registry_injection.pipeline import RegistryInjectionPipeline
-from scenarios.registry_injection.ground_truth import GROUND_TRUTH
+from deep_xpia.scenarios.registry_injection.attack_payloads import ATTACK_PAYLOADS, CLEAN_MANIFEST
+from deep_xpia.scenarios.registry_injection.pipeline import RegistryInjectionPipeline
+from deep_xpia.scenarios.registry_injection.ground_truth import GROUND_TRUTH
 
 
 class TestPipelineAttackNoDefense:

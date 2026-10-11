@@ -34,7 +34,7 @@ All v1 defenses operate on the **prompt stream** (user inputs, agent responses, 
 ## Run
 
 ```python
-from scenarios.registry_injection.pipeline import run_demo
+from deep_xpia.scenarios.registry_injection.pipeline import run_demo
 
 run_demo(attack=True, defense=None)                    # attack succeeds
 run_demo(attack=True, defense="intent_verify_metadata") # caught at registration

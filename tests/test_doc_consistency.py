@@ -6,8 +6,8 @@ from pathlib import Path
 
 import yaml
 
-from scenarios.registry_injection.pipeline import RegistryInjectionPipeline
-from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
+from deep_xpia.scenarios.registry_injection.pipeline import RegistryInjectionPipeline
+from deep_xpia.scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
 
 ROOT = Path(__file__).resolve().parents[1]
 TAXONOMY = {a["id"]: a for a in yaml.safe_load((ROOT / "taxonomy/taxonomy.yaml").read_text())["attacks"]}
@@ -34,15 +34,15 @@ def test_scenario_depths_agree() -> None:
     from fastapi.testclient import TestClient
 
     from deep_xpia.server import create_app
-    from scenarios.intent_laundering.ground_truth import TOPOLOGY as IL
-    from scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP
-    from scenarios.session_smuggling.ground_truth import TOPOLOGY as SS
+    from deep_xpia.scenarios.intent_laundering.ground_truth import TOPOLOGY as IL
+    from deep_xpia.scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP
+    from deep_xpia.scenarios.session_smuggling.ground_truth import TOPOLOGY as SS
 
     truth = {"session_smuggling": SS.hop_count, "memory_poisoning": MP.hop_count,
              "intent_laundering": IL.hop_count}
     listed = {s["id"]: s["depth"] for s in TestClient(create_app()).get("/api/scenarios").json()["scenarios"]}
     for sid, depth in truth.items():
         assert listed[sid] == depth
-        readme = (ROOT / "scenarios" / sid / "README.md").read_text()
+        readme = (ROOT / "src/deep_xpia/scenarios" / sid / "README.md").read_text()
         assert int(re.search(r"\*\*Depth:\*\* (\d+)", readme).group(1)) == depth
     assert "depth_definition" in yaml.safe_load((ROOT / "taxonomy/taxonomy.yaml").read_text())

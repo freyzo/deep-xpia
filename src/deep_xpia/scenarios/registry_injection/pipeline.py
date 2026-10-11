@@ -29,7 +29,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from scenarios.registry_injection.attack_payloads import (
+from deep_xpia.scenarios.registry_injection.attack_payloads import (
     ATTACK_PAYLOADS,
     CLEAN_MANIFEST,
     LEGITIMATE_TASK,

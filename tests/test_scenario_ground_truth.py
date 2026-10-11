@@ -5,12 +5,12 @@ from __future__ import annotations
 import pytest
 
 from deep_xpia.bench.schema import BenchCase, TaxonomyID
-from scenarios.intent_laundering import attack_payloads as il_payloads
-from scenarios.intent_laundering.ground_truth import make_bench_cases as il_cases
-from scenarios.memory_poisoning import attack_payloads as mp_payloads
-from scenarios.memory_poisoning.ground_truth import make_bench_cases as mp_cases
-from scenarios.session_smuggling import attack_payloads as ss_payloads
-from scenarios.session_smuggling.ground_truth import make_bench_cases as ss_cases
+from deep_xpia.scenarios.intent_laundering import attack_payloads as il_payloads
+from deep_xpia.scenarios.intent_laundering.ground_truth import make_bench_cases as il_cases
+from deep_xpia.scenarios.memory_poisoning import attack_payloads as mp_payloads
+from deep_xpia.scenarios.memory_poisoning.ground_truth import make_bench_cases as mp_cases
+from deep_xpia.scenarios.session_smuggling import attack_payloads as ss_payloads
+from deep_xpia.scenarios.session_smuggling.ground_truth import make_bench_cases as ss_cases
 
 SCENARIOS = [
     pytest.param(ss_cases, ss_payloads, TaxonomyID.DXPIA_001, id="session_smuggling"),

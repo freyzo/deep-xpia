@@ -36,7 +36,7 @@ internal:
     note: "n=25 per taxonomy; label corrected from 'all defenses'"
   - id: L5
     claim: "intent verification detected DXPIA-006 in 0.40 of cases"
-    location: [README limitations, scenarios/intent_laundering/README.md]
+    location: [README limitations, src/deep_xpia/scenarios/intent_laundering/README.md]
     artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
     status: verified
   - id: L6
@@ -95,7 +95,7 @@ internal:
     status: verified
   - id: L15
     claim: "verify_tool_metadata blocks all 6 library manifests and 3 scenario manifests, no FP on 3 clean"
-    location: [README library, scenarios/registry_injection/README.md]
+    location: [README library, src/deep_xpia/scenarios/registry_injection/README.md]
     artifact: [tests/test_intent_verify_metadata.py, tests/test_dxpia008.py]
     status: verified
     note: "unit-test level (keyword heuristic), not a live measurement"

@@ -30,7 +30,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from scenarios.intent_laundering.attack_payloads import (
+from deep_xpia.scenarios.intent_laundering.attack_payloads import (
     ATTACK_PAYLOADS,
     CLEAN_PR,
     LEGITIMATE_TASK,

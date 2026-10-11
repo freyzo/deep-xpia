@@ -21,7 +21,7 @@ from deep_xpia.bench.schema import (
     Topology,
     TopologySpec,
 )
-from scenarios.session_smuggling.attack_payloads import ATTACK_PAYLOADS
+from deep_xpia.scenarios.session_smuggling.attack_payloads import ATTACK_PAYLOADS
 
 AGENTS = [
     AgentSpec(

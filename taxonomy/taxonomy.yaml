@@ -38,7 +38,7 @@ attacks:
       - "data source agent: has data access, produces action instruction"
       - "intermediary agent: trusts data agent output, forwards action"
       - "executor agent: receives authorized-looking request (innocent deputy)"
-    reference_scenario: scenarios/session_smuggling/
+    reference_scenario: src/deep_xpia/scenarios/session_smuggling/
     sources:
       - "CSA session smuggling PoC (March 2026)"
     example_pipeline: "user -> financial_assistant -> research_agent -> trade_executor"
@@ -66,7 +66,7 @@ attacks:
         name: scope_action_conformance
         detail: "Actions taken based on poisoned memory violate original scope"
     confused_deputies: 2
-    reference_scenario: scenarios/memory_poisoning/
+    reference_scenario: src/deep_xpia/scenarios/memory_poisoning/
     sources:
       - "Rehberger Gemini memory attack (2025)"
     example_pipeline: "user -> email_assistant -> [shared memory] -> calendar_agent -> action_agent"
@@ -95,7 +95,7 @@ attacks:
         name: authority_narrowing
         detail: "Chain as a whole has more authority than any individual hop"
     confused_deputies: 3
-    reference_scenario: null  # no dedicated scenario; scenarios/intent_laundering/ (DXPIA-006) also traverses a 3-hop cascade
+    reference_scenario: null  # no dedicated scenario; src/deep_xpia/scenarios/intent_laundering/ (DXPIA-006) also traverses a 3-hop cascade
     sources:
       - "Invariant cross-server MCP exfil (April 2025)"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
@@ -186,7 +186,7 @@ attacks:
       (results/depth_analysis.md, results/reanalysis/). Related: arXiv:2503.12188
       (Sec. 4) reports that laundering a request through another agent
       "significantly changes its presentation".
-    reference_scenario: scenarios/intent_laundering/
+    reference_scenario: src/deep_xpia/scenarios/intent_laundering/
     sources:
       - "arXiv:2503.12188 intermediate agent reformatting finding"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
@@ -248,7 +248,7 @@ attacks:
     confused_deputy_roles:
       - "tool selection agent: reads the manifest, trusts metadata implicitly"
       - "task agent: uses the poisoned tool, executes injection from the description field (innocent deputy)"
-    reference_scenario: scenarios/registry_injection/
+    reference_scenario: src/deep_xpia/scenarios/registry_injection/
     sources:
       - "BlueRock 7000 MCP server audit (2026): 36.7% SSRF-vulnerable"
       - "Trend Micro: 492 MCP servers zero auth (2026)"

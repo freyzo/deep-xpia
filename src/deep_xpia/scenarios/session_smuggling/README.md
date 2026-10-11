@@ -19,11 +19,11 @@ Simplest hop mechanism. Most intuitive for non-security audiences. The demo that
 
 ```bash
 # Undefended attack
-python -m scenarios.session_smuggling.pipeline
+python -m deep_xpia.scenarios.session_smuggling.pipeline
 
 # With intent verification defense
 python -c "
-from scenarios.session_smuggling.pipeline import run_demo
+from deep_xpia.scenarios.session_smuggling.pipeline import run_demo
 run_demo(attack=True, defense='intent_verify')
 "
 ```

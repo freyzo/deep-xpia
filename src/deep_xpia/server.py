@@ -71,10 +71,10 @@ def create_app() -> FastAPI:
     @app.get("/api/scenarios")
     async def list_scenarios() -> JSONResponse:
         # depth = delegation edges (taxonomy depth_definition), read from ground truth
-        from scenarios.intent_laundering.ground_truth import TOPOLOGY as IL_TOPOLOGY
-        from scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP_TOPOLOGY
-        from scenarios.registry_injection.ground_truth import GROUND_TRUTH as REGISTRY_GT
-        from scenarios.session_smuggling.ground_truth import TOPOLOGY as SS_TOPOLOGY
+        from deep_xpia.scenarios.intent_laundering.ground_truth import TOPOLOGY as IL_TOPOLOGY
+        from deep_xpia.scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP_TOPOLOGY
+        from deep_xpia.scenarios.registry_injection.ground_truth import GROUND_TRUTH as REGISTRY_GT
+        from deep_xpia.scenarios.session_smuggling.ground_truth import TOPOLOGY as SS_TOPOLOGY
 
         return JSONResponse({
             "scenarios": [
@@ -134,26 +134,26 @@ def create_app() -> FastAPI:
             events: list[Any]
             try:
                 if scenario_id == "session_smuggling":
-                    from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
+                    from deep_xpia.scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
                     result = SessionSmugglingPipeline(attack=attack, defense=defense).run(
                         chain_id=chain_id
                     )
                     events = result.events
                 elif scenario_id == "memory_poisoning":
-                    from scenarios.memory_poisoning.pipeline import MemoryPoisoningPipeline
+                    from deep_xpia.scenarios.memory_poisoning.pipeline import MemoryPoisoningPipeline
                     # the scenario's defense is taint-aware memory
                     result = MemoryPoisoningPipeline(
                         attack=attack, taint_aware_memory=defense in ("taint", "all")
                     ).run()
                     events = result.session1_events + result.session2_events
                 elif scenario_id == "intent_laundering":
-                    from scenarios.intent_laundering.pipeline import IntentLaunderingPipeline
+                    from deep_xpia.scenarios.intent_laundering.pipeline import IntentLaunderingPipeline
                     result = IntentLaunderingPipeline(attack=attack, defense=defense).run(
                         chain_id=chain_id
                     )
                     events = result.events
                 else:  # registry_injection
-                    from scenarios.registry_injection.pipeline import RegistryInjectionPipeline
+                    from deep_xpia.scenarios.registry_injection.pipeline import RegistryInjectionPipeline
                     result = RegistryInjectionPipeline(attack=attack, defense=defense).run(
                         chain_id=chain_id
                     )

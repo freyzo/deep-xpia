@@ -22,11 +22,11 @@ Standard per-hop monitoring misses this. Session 1 looks clean (email agent proc
 
 ```bash
 # Undefended: attack succeeds across session boundary
-python -m scenarios.memory_poisoning.pipeline
+python -m deep_xpia.scenarios.memory_poisoning.pipeline
 
 # With taint-aware memory: taint metadata survives the memory boundary
 python -c "
-from scenarios.memory_poisoning.pipeline import run_demo
+from deep_xpia.scenarios.memory_poisoning.pipeline import run_demo
 run_demo(attack=True, taint_aware=True)
 "
 ```

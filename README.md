@@ -187,11 +187,11 @@ deep-xpia/
     server.py       FastAPI + WebSocket event server
     events.py       event types for visualizer
     cli.py          CLI
-  scenarios/
-    session_smuggling/   DXPIA-001
-    memory_poisoning/    DXPIA-002
-    intent_laundering/   DXPIA-006
-    registry_injection/  DXPIA-008
+    scenarios/
+      session_smuggling/   DXPIA-001
+      memory_poisoning/    DXPIA-002
+      intent_laundering/   DXPIA-006
+      registry_injection/  DXPIA-008
   taxonomy/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
@@ -203,7 +203,7 @@ deep-xpia/
 Found a bypass? Submit a PR with the attack payload and a detector for it. That's how the benchmark grows.
 
 Ways to contribute:
-- New attack scenarios (DXPIA-009+). See `scenarios/session_smuggling/` for the pattern.
+- New attack scenarios (DXPIA-009+). See `src/deep_xpia/scenarios/session_smuggling/` for the pattern.
 - Framework adapters (LangGraph, CrewAI, AutoGen). See `src/deep_xpia/adapters/base.py` for the protocol.
 - New defense primitives. See `src/deep_xpia/defenses/` for existing implementations.
 - Benchmark runs on different models. Results on GPT-4o, Gemini, or open source models are especially useful.

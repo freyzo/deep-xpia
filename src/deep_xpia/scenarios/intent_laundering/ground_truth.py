@@ -7,7 +7,7 @@ from deep_xpia.bench.schema import (
     HopMechanism, InjectionPosition, InjectionSpec, InjectionTechnique,
     PayloadType, Severity, TaxonomyID, Topology, TopologySpec,
 )
-from scenarios.intent_laundering.attack_payloads import ATTACK_PAYLOADS
+from deep_xpia.scenarios.intent_laundering.attack_payloads import ATTACK_PAYLOADS
 
 AGENTS = [
     AgentSpec(name="orchestrator", role="CI/CD orchestrator",

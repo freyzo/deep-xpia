@@ -18,7 +18,7 @@ from deep_xpia.bench.schema import (
     Topology,
     TopologySpec,
 )
-from scenarios.memory_poisoning.attack_payloads import ATTACK_PAYLOADS
+from deep_xpia.scenarios.memory_poisoning.attack_payloads import ATTACK_PAYLOADS
 
 AGENTS = [
     AgentSpec(name="email_assistant", role="email management agent",

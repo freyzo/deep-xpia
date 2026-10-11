@@ -217,7 +217,7 @@ class TestThresholdSensitivity:
 
 class TestScenarioIntegration:
     def test_session_smuggling_caught_with_defense(self) -> None:
-        from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
+        from deep_xpia.scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
 
         pipeline = SessionSmugglingPipeline(attack=True, defense="intent_verify")
         result = pipeline.run()
@@ -227,7 +227,7 @@ class TestScenarioIntegration:
         assert not result.attack_succeeded
 
     def test_session_smuggling_succeeds_undefended(self) -> None:
-        from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
+        from deep_xpia.scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
 
         pipeline = SessionSmugglingPipeline(attack=True, defense=None)
         result = pipeline.run()
@@ -236,7 +236,7 @@ class TestScenarioIntegration:
         )
 
     def test_clean_run_no_false_positive(self) -> None:
-        from scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
+        from deep_xpia.scenarios.session_smuggling.pipeline import SessionSmugglingPipeline
 
         pipeline = SessionSmugglingPipeline(attack=False, defense="intent_verify")
         result = pipeline.run()

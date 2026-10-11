@@ -5,7 +5,6 @@ WORKDIR /app
 # README.md is the package readme (pyproject); the build fails without it
 COPY pyproject.toml README.md LICENSE ./
 COPY src/ ./src/
-COPY scenarios/ ./scenarios/
 COPY taxonomy/ ./taxonomy/
 
 RUN pip install . --no-cache-dir

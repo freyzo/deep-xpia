@@ -36,11 +36,11 @@ The simulator's prior sets intent-verification TPR on DXPIA-006 to ~0.38 (vs ~0.
 
 ```bash
 # Undefended: credentials exfiltrated
-python -m scenarios.intent_laundering.pipeline
+python -m deep_xpia.scenarios.intent_laundering.pipeline
 
 # With intent_verify: caught at hop 1
 python -c "
-from scenarios.intent_laundering.pipeline import run_demo
+from deep_xpia.scenarios.intent_laundering.pipeline import run_demo
 run_demo(attack=True, defense='intent_verify')
 "
 ```
