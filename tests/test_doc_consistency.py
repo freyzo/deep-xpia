@@ -26,3 +26,23 @@ def test_reference_scenarios_exist_and_match_taxonomy() -> None:
         if ref:
             assert (ROOT / ref).is_dir(), f"{tid}: {ref} missing"
             assert tid in (ROOT / ref / "README.md").read_text(), f"{tid}: {ref} README is for another attack"
+
+
+def test_scenario_depths_agree() -> None:
+    import re
+
+    from fastapi.testclient import TestClient
+
+    from deep_xpia.server import create_app
+    from scenarios.intent_laundering.ground_truth import TOPOLOGY as IL
+    from scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP
+    from scenarios.session_smuggling.ground_truth import TOPOLOGY as SS
+
+    truth = {"session_smuggling": SS.hop_count, "memory_poisoning": MP.hop_count,
+             "intent_laundering": IL.hop_count}
+    listed = {s["id"]: s["depth"] for s in TestClient(create_app()).get("/api/scenarios").json()["scenarios"]}
+    for sid, depth in truth.items():
+        assert listed[sid] == depth
+        readme = (ROOT / "scenarios" / sid / "README.md").read_text()
+        assert int(re.search(r"\*\*Depth:\*\* (\d+)", readme).group(1)) == depth
+    assert "depth_definition" in yaml.safe_load((ROOT / "taxonomy/taxonomy.yaml").read_text())

@@ -61,6 +61,11 @@ def create_app() -> FastAPI:
 
     @app.get("/api/scenarios")
     async def list_scenarios() -> JSONResponse:
+        # depth = delegation edges (taxonomy depth_definition), read from ground truth
+        from scenarios.intent_laundering.ground_truth import TOPOLOGY as IL_TOPOLOGY
+        from scenarios.memory_poisoning.ground_truth import TOPOLOGY as MP_TOPOLOGY
+        from scenarios.session_smuggling.ground_truth import TOPOLOGY as SS_TOPOLOGY
+
         return JSONResponse({
             "scenarios": [
                 {
@@ -68,7 +73,7 @@ def create_app() -> FastAPI:
                     "taxonomy_id": "DXPIA-001",
                     "title": "Session Smuggling",
                     "hop_mechanism": "instruction_piggyback",
-                    "depth": 3,
+                    "depth": SS_TOPOLOGY.hop_count,
                     "description": "Injection rides inside a legitimate delegation response.",
                 },
                 {
@@ -76,7 +81,7 @@ def create_app() -> FastAPI:
                     "taxonomy_id": "DXPIA-002",
                     "title": "Cross-Agent Memory Poisoning",
                     "hop_mechanism": "temporal_persistence",
-                    "depth": 3,
+                    "depth": MP_TOPOLOGY.hop_count,
                     "description": "Injection persists across session boundaries.",
                 },
                 {
@@ -84,7 +89,7 @@ def create_app() -> FastAPI:
                     "taxonomy_id": "DXPIA-006",
                     "title": "Intent Laundering",
                     "hop_mechanism": "adversarial_refinement",
-                    "depth": 4,
+                    "depth": IL_TOPOLOGY.hop_count,
                     "description": "Intermediate agent makes injection harder to detect.",
                 },
             ]

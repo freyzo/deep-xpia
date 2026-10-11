@@ -242,7 +242,7 @@ class SessionSmugglingPipeline:
             "scenario": "session_smuggling",
             "taxonomy_id": "DXPIA-001",
             "hop_mechanism": "instruction_piggyback",
-            "depth": 3,
+            "depth": 2,  # delegation edges; see taxonomy depth_definition
             "confused_deputies": ["research_agent", "financial_assistant"],
             "innocent_deputy": "trade_executor",
             "injection_position": "hop_1",

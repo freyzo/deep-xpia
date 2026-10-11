@@ -4,6 +4,10 @@
 
 taxonomy_version: "2.0.0"
 project: deep-xpia
+depth_definition: >
+  depth = number of agent-to-agent delegation edges traversed
+  (topology.hop_count); the user -> first agent step is not counted.
+  depth_range values below use this definition.
 
 attacks:
   - id: DXPIA-001

@@ -61,7 +61,7 @@ def make_bench_cases() -> list[BenchCase]:
             id=f"DXPIA-002-scenario2-{i:03d}",
             taxonomy_id=TaxonomyID.DXPIA_002,
             hop_mechanism=HopMechanism.TEMPORAL_PERSISTENCE,
-            depth=3,
+            depth=TOPOLOGY.hop_count,
             agent_count=3,
             topology=TOPOLOGY,
             injection=injection,

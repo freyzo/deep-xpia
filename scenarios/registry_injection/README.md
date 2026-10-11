@@ -16,14 +16,14 @@ The injection lives in tool metadata (description fields, instructions headers, 
 
 All v1 defenses operate on the **prompt stream** (user inputs, agent responses, delegation messages). Tool metadata is infrastructure the agent trusts implicitly - it sits outside the monitored data flow.
 
-| Defense | Detects? | Why |
-|---------|----------|-----|
-| intent_verify (prompt) | No | Scans responses, not tool metadata |
-| taint | No | Labels user inputs, not infrastructure config |
-| scope_token | No | Tool operates within its declared scope |
-| dlp | Partial | Catches exfil in output, not the source injection |
-| context_budget | No | Operates on retrieval, not registration |
-| **intent_verify (metadata)** | **Yes** | verify_tool_metadata() scans manifest content |
+| Defense | In this demo | Detects? | Why |
+|---------|--------------|----------|-----|
+| intent_verify (prompt) | not implemented | Expected no | Scans responses, not tool metadata |
+| taint | not implemented | Expected no | Labels user inputs, not infrastructure config |
+| scope_token | not implemented | Expected no | Tool operates within its declared scope |
+| dlp | not implemented | Expected partial | Catches exfil in output, not the source injection |
+| context_budget | not implemented | Expected no | Operates on retrieval, not registration |
+| **intent_verify (metadata)** | implemented | **Yes** | verify_tool_metadata() scans manifest content |
 
 ## v2 mitigation
 

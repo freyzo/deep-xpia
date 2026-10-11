@@ -126,6 +126,8 @@ Other primitives follow the same shape: `taint.TaintTracker`, `delegation_token.
 | DXPIA-007 | Delayed trigger | conditional activation | 2 | ASI07 |
 | DXPIA-008 | Registry injection | trust boundary sideload | 1 | ASI04, ASI01 |
 
+Depth = number of agent-to-agent delegation edges traversed (`topology.hop_count`); the user -> first agent step is not counted.
+
 Full taxonomy with literature sources: [taxonomy/taxonomy.yaml](taxonomy/taxonomy.yaml)
 
 ## results

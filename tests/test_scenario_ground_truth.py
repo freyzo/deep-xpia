@@ -43,6 +43,10 @@ class TestMakeBenchCases:
             assert all(a in names and b in names for a, b in case.topology.edges)
             assert set(case.expected.compromised_agents) <= names
 
+    def test_depth_is_delegation_edges(self, make_bench_cases, payloads, taxonomy_id) -> None:
+        for case in make_bench_cases():
+            assert case.depth == case.topology.hop_count == len(case.topology.edges)
+
     def test_jsonl_round_trip(self, make_bench_cases, payloads, taxonomy_id) -> None:
         for case in make_bench_cases():
             assert BenchCase.model_validate_json(case.model_dump_json()) == case
