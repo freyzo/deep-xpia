@@ -1,0 +1,30 @@
+dataset:
+  file: deepxpiabench-v2.jsonl
+  sha256: 5dd1af774da5625955704cb968220f3fb9ad04787502b04a08dc9080750cb958
+model_id: claude-haiku-4-5-20251001
+temperature: API default (not set)
+harness_sha: unknown (pre-dates provenance recording)
+note: exact bytes of the June 2026 live runs behind README headline numbers; immutable
+files:
+- file: live_full_none.jsonl
+  sha256: 80ca7925ac6865fcdebd599d2cb3942bb6dca69820fea040263cc33b0ce26d7b
+  n_runs: 300
+  runs_per_case: 1
+  defense: none
+  mtime: '2026-06-14T17:52:54'
+  command: DEEPXPIA_LIVE=1 deepxpia bench run --defense none --n-runs 1 --output live_full_none.jsonl
+- file: live_full_intent.jsonl
+  sha256: ca7efaf096a3f5f90019606a7d985751e73a1f3cb923573763114f922c38e3ea
+  n_runs: 300
+  runs_per_case: 1
+  defense: intent-verify
+  mtime: '2026-06-14T18:35:43'
+  command: DEEPXPIA_LIVE=1 deepxpia bench run --defense intent-verify --n-runs 1 --output
+    live_full_intent.jsonl
+- file: live_full_all.jsonl
+  sha256: ecc6dd19615ecd7e3904f89425ca041599b2589bcab7d5decef64e8d67fc9d5b
+  n_runs: 300
+  runs_per_case: 1
+  defense: all
+  mtime: '2026-06-14T20:52:19'
+  command: DEEPXPIA_LIVE=1 deepxpia bench run --defense all --n-runs 1 --output live_full_all.jsonl

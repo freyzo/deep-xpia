@@ -65,8 +65,10 @@ _0/
 
 # mypy
 .mypy_cache/
-wiki/ # keep local copies for the wiki repo
-linkedin-drafts.md # never commit job-hunt notes
+# keep local copies for the wiki repo
+wiki/
+# never commit job-hunt notes
+linkedin-drafts.md
 
 # Vite temp config bundles
 *.timestamp-*.mjs
