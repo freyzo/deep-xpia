@@ -209,7 +209,7 @@ attacks:
       "significantly changes its presentation".
     reference_scenario: src/deep_xpia/scenarios/intent_laundering/
     sources:
-      - "arXiv:2503.12188 intermediate agent reformatting finding"
+      - "arXiv:2503.12188 Sec. 4: laundering a request through another agent changes its presentation"
     example_pipeline: "user -> orchestrator -> code_review_agent -> deploy_agent -> notification_agent"
 
   - id: DXPIA-007

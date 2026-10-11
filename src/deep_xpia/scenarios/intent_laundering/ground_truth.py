@@ -66,7 +66,7 @@ def make_bench_cases() -> list[BenchCase]:
             user_task=LEGITIMATE_TASK,
             metadata={
                 "laundering_quality": payload["laundering_quality"],
-                "key_finding": "detection degrades from hop1 to hop2",
+                "key_finding": "scripted: keyword drift score drops from hop 1 to hop 2",
             },
         ))
     return cases

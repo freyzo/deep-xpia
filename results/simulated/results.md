@@ -1,4 +1,4 @@
-> SIMULATED: heuristic priors from bench/runner.py, not measurements. Dataset deepxpiabench-v2.jsonl, n=5 runs/case, harness 6c867f2. Regenerate: results/simulated/regenerate.sh
+> SIMULATED: heuristic priors from bench/runner.py, not measurements. Dataset deepxpiabench-v2.jsonl, n=5 runs/case, harness 5a5ae8a. Regenerate: results/simulated/regenerate.sh
 
 ## Results: defense=none
 

@@ -1,10 +1,11 @@
 # Depth-Dependent Accuracy (DDA) Analysis
 
-> SIMULATED: heuristic priors from bench/runner.py, not measurements. Dataset deepxpiabench-v2.jsonl, n=5 runs/case, harness 6c867f2. Regenerate: results/simulated/regenerate.sh
+> SIMULATED: heuristic priors from bench/runner.py, not measurements. Dataset deepxpiabench-v2.jsonl, n=5 runs/case, harness 5a5ae8a. Regenerate: results/simulated/regenerate.sh
 
 DDA measures how detection accuracy changes as injection depth increases.
-The hypothesis (from arXiv:2503.12188): detection degrades with depth,
-especially for DXPIA-006 (intent laundering).
+Our hypothesis: detection degrades with depth, especially for DXPIA-006
+(intent laundering). It is motivated by the laundering mechanism in
+arXiv:2503.12188 (Sec. 4), which does not itself test depth.
 
 | Depth | none | intent-verify | taint | scope | dlp | context-budget | all |
 |-------|-------|-------|-------|-------|-------|-------|-------|
@@ -18,6 +19,7 @@ especially for DXPIA-006 (intent laundering).
 If detection accuracy decreases monotonically with depth: supports the
 depth-decay hypothesis.
 
-If no significant trend: also a finding -- challenges arXiv:2503.12188.
+If no significant trend: report it. The hypothesis is ours, so a null
+result does not contradict arXiv:2503.12188.
 Report honestly either way. Note: the live (DEEPXPIA_LIVE=1) run did not
 show depth decay; depth is confounded with attack type. See README.

@@ -86,3 +86,28 @@ def test_sentinelagent_properties_match_paper() -> None:
         for case in make():
             assert case.taxonomy_id is not None
             assert case.ground_truth.delegation_property_violated == TAXONOMY_PROPERTY[case.taxonomy_id]
+
+
+# Wording withdrawn or found inaccurate in the 2026-10 audit; must not come back.
+BANNED_PHRASES = [
+    "hypothesis (from arXiv:2503.12188)",  # the paper states no depth hypothesis
+    "challenges arXiv:2503.12188",
+    "finding confirmed",
+]
+
+
+def _claim_files() -> list[Path]:
+    files = [ROOT / "README.md", *sorted((ROOT / "taxonomy").glob("*.yaml"))]
+    files += [p for p in sorted((ROOT / "results").rglob("*.md")) if "archive" not in p.parts]
+    files += sorted((ROOT / "src").rglob("*.py")) + sorted((ROOT / "dashboard/src").glob("*.jsx"))
+    return files
+
+
+def test_withdrawn_wording_absent() -> None:
+    hits = [
+        (str(p.relative_to(ROOT)), phrase)
+        for p in _claim_files()
+        for phrase in BANNED_PHRASES
+        if phrase.lower() in p.read_text().lower()
+    ]
+    assert hits == []

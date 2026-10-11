@@ -1,8 +1,9 @@
 # Depth-Dependent Accuracy (DDA) Analysis
 
 DDA measures how detection accuracy changes as injection depth increases.
-The hypothesis (from arXiv:2503.12188): detection degrades with depth,
-especially for DXPIA-006 (intent laundering).
+Our hypothesis: detection degrades with depth, especially for DXPIA-006
+(intent laundering). It is motivated by the laundering mechanism in
+arXiv:2503.12188 (Sec. 4), which does not itself test depth.
 
 ## Live result (measured): hypothesis NOT confirmed
 
@@ -19,11 +20,11 @@ Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by published d
 | 5 | 0.00 | 0.18 | 1.00 |
 
 Detection does not decrease monotonically with depth. With intent verification
-it is flat and noisy; with all defenses (live `all` = intent verification + taint) it rises with depth. Depth is confounded
-with attack type (depth-1 cases are all DXPIA-008 registry injection, which evades
-prompt-stream defenses). So depth is not the causal variable. Per the protocol
-below, this is reported as a finding that challenges arXiv:2503.12188: hop count
-does not predict detection; trust-boundary position and attack type do.
+it is flat and noisy; with intent verification + taint (live `all`) it rises with depth.
+Depth is confounded with attack type (all depth-1 cases are DXPIA-008, which the v2
+harness delivered as a hop-0 prompt injection), so these buckets cannot isolate a
+depth effect. The hypothesis was ours; the v2 data neither supports it nor rules
+it out.
 
 ## Simulated prior (illustrative, not a measurement)
 

@@ -1,8 +1,8 @@
 """Attack payloads for DXPIA-006 Intent Laundering scenario.
 
-The key property: these payloads are IMPROVED by the intermediate agent
-(code_review_agent). The output of hop 2 is more natural-looking than
-the input at hop 1, making detection HARDER at each hop.
+The key property: in this scripted scenario the intermediate agent
+(code_review_agent) rewrites the payload, so the hop-2 text is more
+natural-looking than the hop-1 input and the keyword detector misses it.
 
 Related: Triedman et al. (arXiv:2503.12188, Sec. 4) observe that "laundering
 the request through another agent's metadata significantly changes its

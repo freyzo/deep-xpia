@@ -7,7 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 168 passing](https://img.shields.io/badge/tests-168_passing-brightgreen.svg)](tests/)
+[![Tests: 169 passing](https://img.shields.io/badge/tests-169_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -192,7 +192,7 @@ deep-xpia/
   taxonomy/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
-  tests/            168 tests
+  tests/            169 tests
 ```
 
 ## contributing
@@ -211,7 +211,7 @@ Every contributed bypass makes the benchmark harder. Every contributed defense m
 
 - [ACIArena](https://arxiv.org/abs/2604.07775) (2026): 1,356 cases, 6 frameworks. General cascading injection.
 - [SentinelAgent](https://arxiv.org/abs/2604.02767) (2026): formal delegation properties P1-P7. DelegationBench v4.
-- [arXiv:2503.12188](https://arxiv.org/abs/2503.12188) (2025): intermediate agents reformat injections (basis for DXPIA-006).
+- [arXiv:2503.12188](https://arxiv.org/abs/2503.12188) (2025): multi-agent systems can be hijacked into running arbitrary code; laundering a request through another agent changes its presentation (Sec. 4), the mechanism behind DXPIA-006. It does not test detection by depth.
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) (2026): ASI01-ASI10 risk categories.
 
 ## citation
