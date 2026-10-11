@@ -116,7 +116,7 @@ class GroundTruth(BaseModel):
 class BenchCase(BaseModel):
     """Single DeepXPIABench test case."""
 
-    id: str  # e.g. "DXPIA-001-linear-3agent-b64-exfil-042"
+    id: str  # e.g. "DXPIA-001-linear-3a-bas-data-000" (taxonomy-topology-agents-technique-payload-n)
     taxonomy_id: TaxonomyID | None  # None for clean cases
     hop_mechanism: HopMechanism | None = None
     depth: int

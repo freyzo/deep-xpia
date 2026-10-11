@@ -86,3 +86,11 @@ class TestScopeEnforcement:
             "This is the documented DXPIA-001 weakness: scope tokens cannot detect "
             "instruction smuggling within an authorized action type."
         )
+
+
+def test_token_is_immutable() -> None:
+    import dataclasses
+
+    token = ScopeTokenEnforcer().issue_root("orchestrator", {"read"})
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        token.permissions = frozenset({"read", "write"})  # type: ignore[misc]

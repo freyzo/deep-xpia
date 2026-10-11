@@ -172,7 +172,8 @@ def sample_topology(
         topology_type = rng.choice(list(Topology))
 
     role_pool = AGENT_ROLES[domain]
-    # sample without replacement up to agent_count; repeat if pool too small
+    # sample without replacement; pools have 5 roles and agent_count <= 5,
+    # so the slice fallback only triggers for larger custom agent counts
     if agent_count <= len(role_pool):
         selected = rng.sample(role_pool, agent_count)
     else:

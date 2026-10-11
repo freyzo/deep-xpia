@@ -1,13 +1,12 @@
 """NativeAdapter: deep-xpia's built-in lightweight agent harness.
 
-This is the default adapter used when running DeepXPIABench without
-an external MAS framework. It implements the full MASAdapter protocol
-using direct Anthropic API calls (live mode) or heuristic simulation
-(benchmark mode).
+It implements the MASAdapter protocol using direct Anthropic API calls
+(live mode) or heuristic simulation. Note: `deepxpia bench run` does not
+use this adapter; BenchRunner has its own simulated and live paths. This
+module is the reference implementation of the adapter protocol.
 
 The native adapter is intentionally thin -- it's a test harness, not
-an orchestration platform. Framework adapters (LangGraph, CrewAI) are
-the right choice for evaluating real MAS pipelines.
+an orchestration platform.
 """
 
 from __future__ import annotations

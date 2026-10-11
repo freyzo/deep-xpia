@@ -22,11 +22,11 @@ class MASAdapter(Protocol):
     framework's native agent wiring. Injection is performed by
     modifying the external content that enters the pipeline.
 
-    Adapters:
-      NativeAdapter   -- deep-xpia's built-in lightweight agents (default)
-      LangGraphAdapter -- wraps LangGraph StateGraph pipelines
-      CrewAIAdapter    -- wraps CrewAI crews
-      AutoGenAdapter   -- wraps AutoGen group chats
+    Implementations:
+      NativeAdapter -- deep-xpia's built-in lightweight agents (the only one shipped)
+
+    Framework adapters (e.g. LangGraph, CrewAI, AutoGen) are not implemented;
+    this protocol is the extension point for them.
     """
 
     def create_pipeline(self, case: BenchCase) -> Pipeline:

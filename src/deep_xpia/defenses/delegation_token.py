@@ -23,7 +23,7 @@ import time
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(frozen=True)
 class DelegationToken:
     """Immutable delegation token for one hop.
 
@@ -41,7 +41,7 @@ class DelegationToken:
 
     def __post_init__(self) -> None:
         payload = f"{self.issuer}:{self.recipient}:{sorted(self.permissions)}:{self.issued_at}"
-        self.token_id = hashlib.sha256(payload.encode()).hexdigest()[:16]
+        object.__setattr__(self, "token_id", hashlib.sha256(payload.encode()).hexdigest()[:16])
 
     def attenuate(self, new_recipient: str, allowed_permissions: set[str]) -> DelegationToken:
         """Create a child token for a sub-delegation.

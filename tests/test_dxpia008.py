@@ -116,3 +116,15 @@ class TestPayloads:
             assert "poisoned_manifest" in payload
             assert "expected_action" in payload
             assert "injection_surface" in payload
+
+
+class TestGenerator:
+    def test_generator_produces_dxpia008_with_tool_metadata(self, tmp_path) -> None:
+        from deep_xpia.bench.generator import BenchGenerator
+
+        cases = BenchGenerator(seed=42).generate(
+            n_attack=16, n_clean=0, output_path=str(tmp_path / "g.jsonl")
+        )
+        dx8 = [c for c in cases if c.taxonomy_id and c.taxonomy_id.value == "DXPIA-008"]
+        assert dx8
+        assert all(c.tool_metadata and c.injection.position.value == "tool_metadata" for c in dx8)

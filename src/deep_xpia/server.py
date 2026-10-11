@@ -3,7 +3,7 @@
 Endpoints:
   GET  /              -> serves the React dashboard (static build)
   GET  /api/scenarios -> list available scenarios
-  POST /api/run       -> run a scenario, stream events via WebSocket
+  POST /api/run/{scenario_id} -> run a scenario, stream events via WebSocket
   WS   /ws/{chain_id} -> WebSocket for real-time delegation events
 
 Usage:
@@ -23,6 +23,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from deep_xpia import __version__
 from deep_xpia.events import ChainEvent, EventType
 
 
@@ -30,7 +31,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="deep-xpia",
         description="Multi-hop cross-prompt injection benchmark visualizer",
-        version="2.0.0",
+        version=__version__,
     )
 
     # Active WebSocket connections {chain_id: [websocket, ...]}
@@ -179,7 +180,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     async def health() -> JSONResponse:
-        return JSONResponse({"status": "ok", "version": "2.0.0"})
+        return JSONResponse({"status": "ok", "version": __version__})
 
     # src/deep_xpia/server.py -> parents[2] is the repo root
     dashboard_build = Path(__file__).resolve().parents[2] / "dashboard" / "dist"
