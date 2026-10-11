@@ -121,6 +121,12 @@ internal:
     artifact: src/deep_xpia/bench/injection_library.py
     status: verified
     note: "limits what per-taxonomy differences in v2 can mean; v3 imports published corpora (workflow P5)"
+  - id: L19
+    claim: "live detectors are keyword heuristics: intent verification (INJECTION_SIGNALS + scope patterns, hand-tuned in-benchmark toward the simulated priors) and a 'taint' content flag (credential/instruction words after hop 0, no provenance)"
+    location: [README the finding, README honest limitations, src/deep_xpia/defenses/intent_verify.py, src/deep_xpia/bench/runner.py]
+    artifact: src/deep_xpia/bench/runner.py
+    status: verified
+    note: "report them as heuristic baselines; the taint flag fires on 0.44-0.75 of payload-free hops after hop 0 (results/reanalysis/v2_per_hop.md)"
 external:
   - id: arXiv:2604.07775
     what: "ACIArena: 1,356 test cases, 6 MAS implementations, 3 objectives; Limitations: 'without exploring robustness-oriented system design'"

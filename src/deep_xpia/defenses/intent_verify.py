@@ -51,12 +51,15 @@ class IntentVerifier:
     """Hop-level intent verifier.
 
     In production this would call a dedicated NLI model (e.g. cross-encoder).
-    In simulation mode (live=False) it uses a keyword heuristic that
-    reproduces the qualitative behavior without API cost.
+    With live=False (the default, and what the live benchmark runner uses) it
+    is a keyword heuristic: INJECTION_SIGNALS hits plus per-agent scope
+    patterns, no model call.
 
-    The heuristic is designed to match the documented performance:
-    - catches DXPIA-001 (explicit smuggled actions) at TPR ~0.82
-    - misses DXPIA-006 (laundered instructions) at TPR ~0.38
+    Disclosure: the keyword lists and weights were tuned by hand while this
+    benchmark was built, aiming at the simulated priors (DXPIA-001 caught,
+    DXPIA-006 missed). Report it as an in-benchmark heuristic baseline, not an
+    independent detector. Live v2 did not match the target: DXPIA-001 0.16,
+    DXPIA-006 0.40 (n=25 each).
     """
 
     INJECTION_SIGNALS = [

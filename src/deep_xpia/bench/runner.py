@@ -382,6 +382,8 @@ class BenchRunner:
                     detected = True
                     break
             if use_taint:
+                # keyword content flag (credential / instruction words after hop 0),
+                # not provenance tracking: TaintTracker labels are not wired in here
                 dcs = infer_data_classes(output)
                 if hop > 0 and (
                     DataClass.CREDENTIALS in dcs or DataClass.INSTRUCTION in dcs
