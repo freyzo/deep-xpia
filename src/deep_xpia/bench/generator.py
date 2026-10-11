@@ -84,6 +84,19 @@ TAXONOMY_TOPOLOGIES: dict[TaxonomyID, list[Topology]] = {
     TaxonomyID.DXPIA_008: [Topology.LINEAR, Topology.FAN_OUT, Topology.HIERARCHICAL],
 }
 
+# Taxonomy -> agent domain matching its USER_TASKS. None = tasks span domains,
+# so the domain stays random.
+TAXONOMY_DOMAIN: dict[TaxonomyID, str | None] = {
+    TaxonomyID.DXPIA_001: "financial",
+    TaxonomyID.DXPIA_002: "productivity",
+    TaxonomyID.DXPIA_003: "devops",
+    TaxonomyID.DXPIA_004: None,
+    TaxonomyID.DXPIA_005: "productivity",
+    TaxonomyID.DXPIA_006: "devops",
+    TaxonomyID.DXPIA_007: None,
+    TaxonomyID.DXPIA_008: "devops",
+}
+
 USER_TASKS: dict[TaxonomyID, list[str]] = {
     TaxonomyID.DXPIA_001: [
         "Analyze today's market data and prepare a portfolio summary.",
@@ -140,7 +153,9 @@ class BenchGenerator:
 
         allowed_topos = TAXONOMY_TOPOLOGIES[taxonomy_id]
         topo_type = self.rng.choice(allowed_topos)
-        topology = sample_topology(self.rng, agent_count, topo_type)
+        topology = sample_topology(
+            self.rng, agent_count, topo_type, domain=TAXONOMY_DOMAIN[taxonomy_id]
+        )
         # builders may fall back (e.g. fan_out with <4 agents -> linear) and
         # non-linear topologies have fixed hop counts; record what was built
         topo_type = topology.topology_type
