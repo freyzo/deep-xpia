@@ -149,3 +149,24 @@ class TestV2:
                 max_hop = len(c.topology.agents) - 1
                 assert injected_hops_current(c) == {max_hop - 1}
                 assert injected_hops_v2(c) == set()
+
+
+def test_scorer_shares_nothing_with_the_detectors() -> None:
+    """The outcome measure must not reuse the vocabulary of the defenses it evaluates."""
+    import ast
+    import re
+
+    from deep_xpia.bench import outcomes
+    from deep_xpia.defenses.intent_verify import IntentVerifier
+    from deep_xpia.defenses.taint import DATA_CLASS_PATTERNS
+
+    detector = set(IntentVerifier.INJECTION_SIGNALS)
+    detector |= {p for ps in IntentVerifier.SCOPE_ACTION_PATTERNS.values() for p in ps}
+    detector |= {p for ps in DATA_CLASS_PATTERNS.values() for p in ps}
+    assert not set(outcomes.FLAG_PATTERNS) & detector
+    # no flag pattern matches a detector keyword on its own
+    words = {re.sub(r"[^a-z ]", " ", p.lower()).strip() for p in detector}
+    assert not [w for w in words if w and outcomes.FLAG.search(w)]
+    tree = ast.parse(Path(outcomes.__file__).read_text())
+    imported = {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    assert not any(m.startswith("deep_xpia.defenses") for m in imported)
