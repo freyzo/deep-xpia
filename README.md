@@ -178,7 +178,7 @@ Full results and failure analysis: [results/](results/)
 deep-xpia/
   dashboard/        vite + react site (GitHub Pages)
   src/deep_xpia/
-    bench/          generator, runner, metrics, report, schema
+    bench/          generator, runner, metrics, report, schema, topologies, injection_library
     defenses/       intent_verify, taint, delegation_token, dlp, context_budget
     adapters/       native, base (protocol)
     server.py       FastAPI + WebSocket event server
