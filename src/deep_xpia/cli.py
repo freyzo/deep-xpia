@@ -27,6 +27,7 @@ def bench_run(
     output: str = typer.Option("results.jsonl", help="Output file"),
     n_runs: int = typer.Option(5, help="Runs per case for CI"),
     limit: int = typer.Option(0, help="Limit cases (0 = all)"),
+    temperature: float = typer.Option(None, help="Live sampling temperature (default: API default)"),
 ) -> None:
     """Run DeepXPIABench against a target MAS."""
     from deep_xpia.bench.runner import BenchRunner
@@ -39,6 +40,7 @@ def bench_run(
         output_path=output,
         n_runs=n_runs,
         limit=limit or None,
+        temperature=temperature,
     )
     runner.run()
 

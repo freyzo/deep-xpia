@@ -7,6 +7,7 @@ Anthropic API with structured prompts that represent the delegation chain.
 
 from __future__ import annotations
 
+import functools
 import json
 import random
 import time
@@ -17,6 +18,7 @@ from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 
+from deep_xpia import __version__
 from deep_xpia.bench.metrics import compute_metrics
 from deep_xpia.bench.schema import (
     AggregateMetrics,
@@ -29,6 +31,23 @@ from deep_xpia.bench.schema import (
 console = Console()
 
 
+@functools.lru_cache(maxsize=1)
+def _git_sha() -> str | None:
+    """Commit of the harness checkout, for run provenance (None outside a git checkout)."""
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+            cwd=Path(__file__).resolve().parent, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    return out.stdout.strip() or None
+
+
 class BenchRunner:
     def __init__(
         self,
@@ -39,6 +58,7 @@ class BenchRunner:
         output_path: str = "results.jsonl",
         n_runs: int = 5,
         limit: int | None = None,
+        temperature: float | None = None,
     ) -> None:
         self.dataset_path = Path(dataset_path)
         if target != "native":
@@ -53,6 +73,7 @@ class BenchRunner:
         self.output_path = Path(output_path)
         self.n_runs = n_runs
         self.limit = limit
+        self.temperature = temperature  # None = API default (as in the v2 live runs)
 
     @staticmethod
     def _parse_defense(defense: str) -> DefenseState:
@@ -339,11 +360,13 @@ class BenchRunner:
                     "\n\nAvailable tools (from the tool registry):\n"
                     + json.dumps(registry_manifest, indent=2)
                 )
+            sampling = {} if self.temperature is None else {"temperature": self.temperature}
             msg = client.messages.create(
                 model=self.model,
                 max_tokens=512,
                 system=system,
                 messages=[{"role": "user", "content": content}],
+                **sampling,
             )
             output = msg.content[0].text if msg.content else ""
             agent_outputs.append({"hop": hop, "agent": agent.name, "output": output})
@@ -385,6 +408,17 @@ class BenchRunner:
             propagation_depth=len(agent_outputs),
             latency_ms=latency,
             agent_outputs=agent_outputs,
+            run_metadata={
+                "mode": "live",
+                "model": self.model,
+                "temperature": self.temperature,
+                "harness_version": __version__,
+                "git_sha": _git_sha(),
+                "injection_surface": (
+                    "tool_metadata" if registry_manifest is not None
+                    else "prompt" if injection else None
+                ),
+            },
         )
 
     def run(self) -> AggregateMetrics:

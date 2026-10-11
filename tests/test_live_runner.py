@@ -73,3 +73,24 @@ class TestPromptInjectionUnchanged:
         _, calls = _run(case, "none")
         assert case.injection is not None
         assert any(case.injection.content in c["messages"][0]["content"] for c in calls)
+
+
+class TestSamplingAndProvenance:
+    @pytest.mark.parametrize("temperature", [0.0, 0.7])
+    def test_temperature_passed_when_set(self, cases: list[BenchCase], temperature: float) -> None:
+        result, calls = _run(cases[0], "none", temperature=temperature)
+        assert calls and all(c["temperature"] == temperature for c in calls)
+        assert result.run_metadata["temperature"] == temperature
+
+    def test_temperature_omitted_by_default(self, cases: list[BenchCase]) -> None:
+        result, calls = _run(cases[0], "none")
+        assert calls and all("temperature" not in c for c in calls)
+        assert result.run_metadata["temperature"] is None
+
+    def test_run_metadata(self, cases: list[BenchCase]) -> None:
+        from deep_xpia import __version__
+
+        result, _ = _run(_first(cases, "DXPIA-008"), "none")
+        md = result.run_metadata
+        assert md["mode"] == "live" and md["model"] and md["harness_version"] == __version__
+        assert md["injection_surface"] == "tool_metadata"

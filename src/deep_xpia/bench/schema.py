@@ -147,6 +147,8 @@ class RunResult(BaseModel):
     agent_outputs: list[dict[str, Any]] = Field(default_factory=list)
     retrieval_log: list[dict[str, Any]] = Field(default_factory=list)  # [{hop, agent, available, accessed, token_estimate}]
     error: str | None = None
+    # provenance for live runs: model, temperature, harness_version, git_sha, injection_surface
+    run_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class AggregateMetrics(BaseModel):
