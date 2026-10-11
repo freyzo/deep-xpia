@@ -1,0 +1,14 @@
+# Third-party corpora used by deep-xpia. Item text is never edited (workflow P5 / G4).
+corpora:
+  - name: notinject
+    use: "benign hard negatives for detector over-defense (workflow P4.6)"
+    paper: "arXiv:2410.22770"
+    source: https://huggingface.co/datasets/leolee99/NotInject
+    revision: 847ae76cf8fea5ed325429e569ae8cfef022d2e0
+    retrieved: 2026-10-11
+    license: MIT
+    redistribution: vendored
+    file: corpora/notinject/notinject.jsonl
+    rows: 339
+    sha256: c9f77fddd3803e9b5ab3001e8cba29137ed6ab113ace704179d9aa80bfb70695
+    fetch: scripts/fetch_notinject.py

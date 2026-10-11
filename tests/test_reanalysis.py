@@ -17,6 +17,7 @@ REPORTS = [
     ("results/reanalysis/rescore_v2.py", "results/reanalysis/v2_rescored.md"),
     ("results/reanalysis/per_hop_v2.py", "results/reanalysis/v2_per_hop.md"),
     ("results/reanalysis/stats_v2.py", "results/reanalysis/v2_stats.md"),
+    ("results/reanalysis/notinject_overdefense.py", "results/reanalysis/notinject_overdefense.md"),
 ]
 
 
