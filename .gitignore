@@ -37,7 +37,7 @@ coverage.xml
 results/raw_*.jsonl
 report/
 *.jsonl
-!deepxpiabench-v1.jsonl
+!results/archive/v1/deepxpiabench-v1.jsonl
 !deepxpiabench-v2.jsonl
 
 # Environment / secrets
