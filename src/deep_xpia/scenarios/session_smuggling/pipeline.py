@@ -31,7 +31,7 @@ from deep_xpia.scenarios.session_smuggling.attack_payloads import (
 
 @dataclass
 class DelegationEvent:
-    """A single delegation hop event, for visualizer streaming."""
+    """A single delegation hop event, for the demo event stream."""
 
     hop: int
     from_agent: str

@@ -1,7 +1,7 @@
-"""FastAPI server for the delegation chain visualizer.
+"""FastAPI demo server: runs scenarios and streams their delegation events.
 
 Endpoints:
-  GET  /              -> serves the React dashboard (static build)
+  GET  /              -> redirects to the static site (/deep-xpia/) when docs/ exists
   GET  /api/scenarios -> list available scenarios
   POST /api/run/{scenario_id} -> run a scenario, stream events via WebSocket
   WS   /ws/{chain_id} -> WebSocket for real-time delegation events
@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from deep_xpia import __version__
@@ -33,7 +33,7 @@ RUNNABLE_SCENARIOS = ("session_smuggling", "memory_poisoning", "intent_launderin
 def create_app() -> FastAPI:
     app = FastAPI(
         title="deep-xpia",
-        description="Multi-hop cross-prompt injection benchmark visualizer",
+        description="Multi-hop cross-prompt injection benchmark: scenario demo API",
         version=__version__,
     )
 
@@ -192,7 +192,7 @@ def create_app() -> FastAPI:
                         ground_truth_label=ev.ground_truth_label,
                     ).model_dump(mode="json")
                     await broadcast(chain_id, payload)
-                    await asyncio.sleep(0.3)  # pace for visualizer animation
+                    await asyncio.sleep(0.3)  # pace events for clients that animate them
 
                 await broadcast(chain_id, {
                     "event_type": EventType.CHAIN_COMPLETE.value,
@@ -202,7 +202,9 @@ def create_app() -> FastAPI:
                     ),
                 })
             except Exception as e:
-                await broadcast(chain_id, {"event_type": "error", "chain_id": chain_id, "error": str(e)})
+                await broadcast(
+                    chain_id, {"event_type": EventType.ERROR.value, "chain_id": chain_id, "error": str(e)}
+                )
 
         # keep a reference so the task isn't garbage-collected mid-run
         task = asyncio.create_task(_run_and_stream())
@@ -214,30 +216,32 @@ def create_app() -> FastAPI:
     async def health() -> JSONResponse:
         return JSONResponse({"status": "ok", "version": __version__})
 
-    # src/deep_xpia/server.py -> parents[2] is the repo root
-    dashboard_build = Path(__file__).resolve().parents[2] / "dashboard" / "dist"
+    # The static site is built into docs/ with base /deep-xpia/ (GitHub Pages).
+    # In a repo checkout serve it at the same path; installed packages have no
+    # docs/ and get a short fallback page.
+    site_dir = Path(__file__).resolve().parents[2] / "docs"
 
-    async def root() -> HTMLResponse:
-        # Minimal fallback when dashboard build isn't present
-        return HTMLResponse("""
+    if (site_dir / "index.html").exists():
+        app.mount("/deep-xpia", StaticFiles(directory=str(site_dir), html=True), name="site")
+
+        async def root() -> RedirectResponse:
+            return RedirectResponse("/deep-xpia/")
+    else:
+        async def root() -> HTMLResponse:  # type: ignore[misc]
+            return HTMLResponse("""
 <!DOCTYPE html>
 <html>
 <head><title>deep-xpia</title></head>
 <body>
-<h1>deep-xpia</h1>
-<p>Backend running. Dashboard build not found.</p>
-<p>Run: <code>cd dashboard && npm install && npm run build</code></p>
-<p><a href="/docs">API docs</a></p>
+<h1>deep-xpia demo API</h1>
+<p>Static site not found (run from a repo checkout, or see
+<a href="https://freyzo.github.io/deep-xpia/">freyzo.github.io/deep-xpia</a>).</p>
+<p><a href="/docs">API docs</a> &middot; <a href="/api/scenarios">/api/scenarios</a></p>
 </body>
 </html>
 """)
 
-    # Serve the static dashboard build if it exists; otherwise the fallback page.
-    # (A GET "/" route registered first would shadow the mount.)
-    if dashboard_build.exists():
-        app.mount("/", StaticFiles(directory=str(dashboard_build), html=True), name="dashboard")
-    else:
-        app.add_api_route("/", root, methods=["GET"])
+    app.add_api_route("/", root, methods=["GET"])
 
     return app
 

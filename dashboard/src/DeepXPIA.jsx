@@ -592,10 +592,10 @@ export default function DeepXPIA() {
       <Section id="quickstart" label="quickstart">
         <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, lineHeight: 2.3 }}>
           {[
-            ["#", "docker (full stack with visualizer)"],
+            ["#", "docker (demo API + static site)"],
             ["$", "docker compose up"],
             ["#", "or pip"],
-            ["$", "pip install deep-xpia"],
+            ["$", "pip install git+https://github.com/freyzo/deep-xpia"],
             ["$", "deepxpia demo"],
             ["#", "run the benchmark"],
             ["$", "deepxpia bench run --defense all"],

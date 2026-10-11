@@ -55,14 +55,13 @@ Single-agent XPIA tools (mcp-scan, promptfoo) test how vulnerable one model is t
 ## quickstart
 
 ```bash
-# docker (full stack with visualizer)
+# docker: demo API on :8000, static site on :3000
 docker compose up
-# open localhost:3000
 
-# or pip
-pip install deep-xpia
+# or pip (not on PyPI yet)
+pip install git+https://github.com/freyzo/deep-xpia
 
-# interactive demo
+# demo API (scenario event stream) + static site on :8000 (site needs a repo checkout)
 deepxpia demo
 
 # run the benchmark
@@ -185,7 +184,7 @@ deep-xpia/
     defenses/       intent_verify, taint, delegation_token, dlp, context_budget
     adapters/       native, base (protocol)
     server.py       FastAPI + WebSocket event server
-    events.py       event types for visualizer
+    events.py       event schema for the scenario stream
     cli.py          CLI
     scenarios/
       session_smuggling/   DXPIA-001

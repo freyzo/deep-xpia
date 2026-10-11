@@ -55,3 +55,11 @@ def test_closed_websocket_leaves_no_connection_entry() -> None:
     closure = dict(zip(endpoint.endpoint.__code__.co_freevars,
                        (c.cell_contents for c in endpoint.endpoint.__closure__ or ())))
     assert "abc" not in closure["_connections"]
+
+
+def test_root_redirects_to_static_site_in_checkout() -> None:
+    client = TestClient(create_app())
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/deep-xpia/"
+    page = client.get("/deep-xpia/")
+    assert page.status_code == 200 and '<div id="root">' in page.text

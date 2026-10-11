@@ -1,4 +1,4 @@
-"""WebSocket event types for the delegation chain visualizer."""
+"""Event schema for the scenario event stream (WebSocket)."""
 
 from __future__ import annotations
 
@@ -9,13 +9,9 @@ from pydantic import BaseModel
 
 
 class EventType(str, Enum):
-    DELEGATION_START = "delegation_start"
     DELEGATION_RESULT = "delegation_result"
-    TRUST_BREACH = "trust_breach"
-    MEMORY_WRITE = "memory_write"
-    TOOL_CALL = "tool_call"
-    EXFIL_ATTEMPT = "exfil_attempt"
     CHAIN_COMPLETE = "chain_complete"
+    ERROR = "error"
 
 
 class ChainEvent(BaseModel):

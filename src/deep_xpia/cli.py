@@ -108,7 +108,7 @@ def bench_report(
 
 @app.command()
 def demo() -> None:
-    """Launch the interactive chain visualizer."""
+    """Serve the scenario demo API (events over WebSocket) and the static site on :8000."""
     import uvicorn
     from deep_xpia.server import create_app
 
