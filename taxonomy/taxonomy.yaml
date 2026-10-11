@@ -28,6 +28,7 @@ depth_definition: >
   depth_range values below use this definition. The v2 live harness executed
   every topology as a sequential chain of len(agents) - 1 calls, so analyses
   of those runs use executed calls (results/reanalysis/dda_v2_corrected_depth.md).
+  v3 generates linear chains only until the runner executes topology edges.
 
 attacks:
   - id: DXPIA-001

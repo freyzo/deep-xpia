@@ -152,10 +152,14 @@ def _carries(injection: InjectionSpec, manifest: dict[str, Any] | None, canary: 
 
 
 class BenchGenerator:
-    def __init__(self, seed: int = 42, canaries: bool = True) -> None:
+    def __init__(self, seed: int = 42, canaries: bool = True, linear_only: bool = True) -> None:
         self.rng = random.Random(seed)
         self.seed = seed
         self.canaries = canaries
+        # The live runner executes agents as a sequential chain and ignores topology
+        # edges, so v3 claims are restricted to linear chains (workflow G11). The draw
+        # still happens, so the random stream matches linear_only=False.
+        self.linear_only = linear_only
         self._counter: dict[str, int] = {}
         self._canary_counter: dict[str, int] = {}
 
@@ -181,6 +185,8 @@ class BenchGenerator:
 
         allowed_topos = TAXONOMY_TOPOLOGIES[taxonomy_id]
         topo_type = self.rng.choice(allowed_topos)
+        if self.linear_only:
+            topo_type = Topology.LINEAR
         topology = sample_topology(
             self.rng, agent_count, topo_type, domain=TAXONOMY_DOMAIN[taxonomy_id]
         )
@@ -265,6 +271,8 @@ class BenchGenerator:
     def _generate_clean_case(self) -> BenchCase:
         agent_count = self.rng.randint(2, 4)
         topo_type = self.rng.choice(list(Topology))
+        if self.linear_only:
+            topo_type = Topology.LINEAR
         topology = sample_topology(self.rng, agent_count, topo_type)
         case_id = self._next_id(f"CLEAN-{topo_type.value}-{agent_count}a")
 

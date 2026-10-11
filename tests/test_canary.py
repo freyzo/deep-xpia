@@ -45,3 +45,15 @@ def test_manifest_library_is_not_mutated(tmp_path) -> None:
     before = json.dumps(POISONED_MANIFESTS, sort_keys=True)
     _gen(tmp_path, True, "a.jsonl")
     assert json.dumps(POISONED_MANIFESTS, sort_keys=True) == before
+
+
+def test_v3_generates_linear_chains_only(tmp_path) -> None:
+    from deep_xpia.bench.schema import Topology
+
+    linear = BenchGenerator(seed=7).generate(n_attack=80, n_clean=20, output_path=str(tmp_path / "l.jsonl"))
+    assert {c.topology.topology_type for c in linear} == {Topology.LINEAR}
+    assert all(c.depth == c.topology.hop_count == len(c.topology.agents) - 1 for c in linear)
+    mixed = BenchGenerator(seed=7, linear_only=False).generate(n_attack=80, n_clean=20, output_path=str(tmp_path / "m.jsonl"))
+    assert len({c.topology.topology_type for c in mixed}) > 1
+    # same random stream: agents and tasks line up case by case
+    assert [(c.user_task, c.agent_count) for c in linear] == [(c.user_task, c.agent_count) for c in mixed]

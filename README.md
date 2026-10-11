@@ -7,7 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 224 passing](https://img.shields.io/badge/tests-224_passing-brightgreen.svg)](tests/)
+[![Tests: 225 passing](https://img.shields.io/badge/tests-225_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -168,6 +168,7 @@ Full results and failure analysis: [results/](results/)
 - **v2 success judge.** It counted action words, not attack success (see [the finding](#the-finding)). Re-scoring with the codebook-based scorer (`src/deep_xpia/bench/outcomes.py`) waits on human validation.
 - **Live detectors are keyword heuristics.** Intent verification is a hand-tuned keyword heuristic (tuned while this benchmark was built), and the live taint flag matches content words without tracking provenance. Treat both as heuristic baselines, not independent detectors.
 - **DXPIA-008 was the weak spot in v2, not intent laundering.** Live, intent verification + taint flag detected DXPIA-008 in 0.40 of cases (0.00 at depth 1), while intent verification alone caught DXPIA-006 relatively well (0.40). v2 measured DXPIA-008 as a hop-0 prompt injection, not via the tool manifest (fixed in the harness, not yet re-measured). The per-case laundering mechanism is real (a stripped instruction can pass a keyword check), but it was not the population-level blind spot the simulation predicted.
+- **Topologies.** v2 labeled cases fan-out, hierarchical or loop, but the live runner executes every case as a linear chain; v3 generates linear chains only until topology-faithful execution exists.
 - **v2 attack types share templates.** All 8 DXPIA ids draw on the same 16 payload templates; in v2 the id changes the injection position, topology, depth range, task and payload type, not the attack mechanic. No template uses the `{trigger}` placeholder, so DXPIA-007 cases carry no trigger, and DXPIA-002 cases involve no shared memory. The 100 clean cases use 10 plain tasks, with no benign look-alikes (hard negatives).
 - **Single run per case, default temperature.** v2 used n=1 and the API-default temperature, so per-taxonomy cells (n=25) have wide intervals and exact outputs are not reproducible. The harness now records temperature and model per run.
 - **Taint tracking loses provenance at memory boundaries.** In the library's `TaintTracker` (not the live keyword flag), DXPIA-002 evades taint tracking on naive memory stores because taint metadata isn't persisted alongside values.
@@ -198,7 +199,7 @@ deep-xpia/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
   paper/            related-work matrix and paper artifacts
-  tests/            224 tests
+  tests/            225 tests
 ```
 
 ## contributing

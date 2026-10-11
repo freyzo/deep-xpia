@@ -54,6 +54,10 @@ def bench_generate(
     n_clean: int = typer.Option(100, help="Number of clean cases"),
     seed: int = typer.Option(42, help="Random seed"),
     force: bool = typer.Option(False, "--force", help="Overwrite an existing output file"),
+    linear_only: bool = typer.Option(
+        True, "--linear-only/--all-topologies",
+        help="Linear chains only (the live runner does not execute fan-out/hierarchical/loop edges)",
+    ),
 ) -> None:
     """Generate the DeepXPIABench dataset."""
     from pathlib import Path
@@ -65,7 +69,7 @@ def bench_generate(
         console.print(f"[red]{output} already exists; pass --force to overwrite[/red]")
         raise typer.Exit(code=1)
 
-    gen = BenchGenerator(seed=seed)
+    gen = BenchGenerator(seed=seed, linear_only=linear_only)
     gen.generate(n_attack=n_attack, n_clean=n_clean, output_path=output)
     console.print(f"[green]Generated {n_attack + n_clean} cases -> {output}[/green]")
 
