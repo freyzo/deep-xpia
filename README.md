@@ -17,8 +17,6 @@ Recent Microsoft 365 Copilot security incidents weren't bad prompts. They were c
 | Incident | CVE / Ref | DXPIA class |
 |---|---|---|
 | EchoLeak | [CVE-2025-32711](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-32711) | DXPIA-006 |
-| Copilot Studio SSRF | [CVE-2024-38206](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38206) | DXPIA-001 |
-| Copilot Studio info leak | [CVE-2024-43610](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43610) | DXPIA-005 |
 
 ![deep-xpia: multi-hop cross-prompt injection across agent delegation](docs/images/deep_xpia_readme_visual.svg)
 

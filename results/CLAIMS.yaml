@@ -135,14 +135,14 @@ external:
     what: "NVD: SSRF protection bypass in Copilot Studio (CVSS 8.5 / 6.5)"
     url: https://nvd.nist.gov/vuln/detail/CVE-2024-38206
     accessed: 2026-10-10
-    status: unverifiable
-    note: "README maps to DXPIA-001 (session smuggling); NVD description (SSRF) does not support that mapping. Editorial decision pending"
+    status: withdrawn
+    note: "README mapping to DXPIA-001 (session smuggling) removed 2026-10-11: NVD description does not support it"
   - id: CVE-2024-43610
     what: "NVD: exposure of sensitive information in Copilot Studio (CVSS 7.4 / 7.5)"
     url: https://nvd.nist.gov/vuln/detail/CVE-2024-43610
     accessed: 2026-10-10
-    status: unverifiable
-    note: "README maps to DXPIA-005 (scope escalation); NVD description does not support that mapping. Editorial decision pending"
+    status: withdrawn
+    note: "README mapping to DXPIA-005 (scope escalation) removed 2026-10-11: NVD description does not support it"
   - id: CVE-2026-21520
     what: "NVD: exposure of sensitive information in Copilot Studio (CVSS 7.5)"
     url: https://nvd.nist.gov/vuln/detail/CVE-2026-21520
