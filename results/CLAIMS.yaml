@@ -1,0 +1,163 @@
+# Claims ledger: every number or factual claim that may be cited.
+# status: verified (recomputed from artifact) | changed (corrected; old wording noted)
+#         | withdrawn | simulated (illustrative prior, not a measurement)
+# Live artifacts: results/raw/v2-live-2026-06/ (sha256 in results/FROZEN_SHA256SUMS).
+# Recompute: python results/reanalysis/reanalyze_v2_depth.py ; deepxpia bench report ...
+ledger_version: 1
+checked: 2026-10-10
+harness_note: "v2 live runs predate per-run provenance; model claude-haiku-4-5-20251001, temperature = API default, n=1/case"
+
+internal:
+  - id: L1
+    claim: "undefended ASR 0.69, TPR 0.00, FPR 0.00"
+    location: [README the finding, site stats]
+    artifact: results/raw/v2-live-2026-06/live_full_none.jsonl
+    command: "deepxpia bench report none=results/raw/v2-live-2026-06/live_full_none.jsonl --dataset deepxpiabench-v2.jsonl"
+    value: {asr: 0.69, asr_ci: [0.62, 0.75], tpr: 0.00, tpr_ci: [0.00, 0.02], fpr: 0.00, fpr_ci: [0.00, 0.04]}
+    status: verified
+  - id: L2
+    claim: "intent verification ASR 0.55, TPR 0.23, FPR 0.01"
+    location: [README the finding]
+    artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
+    value: {asr: 0.55, asr_ci: [0.48, 0.61], tpr: 0.23, tpr_ci: [0.18, 0.29], fpr: 0.01, fpr_ci: [0.00, 0.05]}
+    status: verified
+  - id: L3
+    claim: "all: ASR 0.12, TPR 0.77, FPR 0.31"
+    location: [README the finding, site stats]
+    artifact: results/raw/v2-live-2026-06/live_full_all.jsonl
+    value: {asr: 0.12, asr_ci: [0.08, 0.17], tpr: 0.77, tpr_ci: [0.70, 0.82], fpr: 0.31, fpr_ci: [0.23, 0.41]}
+    status: changed
+    note: "numbers verified; label corrected. Live 'all' = intent verification + taint (runner.py use_intent/use_taint), not 'all 5 defenses stacked' as previously stated"
+  - id: L4
+    claim: "per-taxonomy TPR, intent verification + taint: 006 1.00, 003 0.92, 001 0.84, 007 0.84, 004 0.76, 002 0.72, 005 0.64, 008 0.40"
+    location: [README results]
+    artifact: results/raw/v2-live-2026-06/live_full_all.jsonl
+    status: verified
+    note: "n=25 per taxonomy; label corrected from 'all defenses'"
+  - id: L5
+    claim: "intent verification detected DXPIA-006 in 0.40 of cases"
+    location: [README limitations, scenarios/intent_laundering/README.md]
+    artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
+    status: verified
+  - id: L6
+    claim: "all 10 depth-1 cases are DXPIA-008; TPR 0.00 at depth 1"
+    location: [README finding 2, site DDA]
+    artifact: [deepxpiabench-v2.jsonl, results/raw/v2-live-2026-06/live_full_all.jsonl]
+    value: {tpr: 0.00, tpr_ci: [0.00, 0.28], n: 10}
+    status: changed
+    note: "numbers verified; v2 harness injected DXPIA-008 as a hop-0 prompt, not via the tool manifest (fixed caf7623). 'evades all five defenses' / 'trust boundary predicts compromise' withdrawn pending v3"
+  - id: L7
+    claim: "intent-verification TPR by depth label 1-5: 0.20/0.19/0.25/0.38/0.18"
+    location: [README finding 3, results/depth_analysis.md]
+    artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
+    command: "compute_metrics(..., depth_source='label')"
+    status: verified
+  - id: L8
+    claim: "TPR by depth label (intent verification + taint): 0.00/0.72/0.85/0.88/1.00"
+    location: [results/depth_analysis.md, site DDA chart]
+    artifact: results/raw/v2-live-2026-06/live_full_all.jsonl
+    status: changed
+    note: "reproduces with depth_source='label'; 53/200 labels disagree with topology. Corrected depth: 0.00/0.76/0.88/0.95, no depth-5 cases (results/reanalysis/dda_v2_corrected_depth.md)"
+  - id: L9
+    claim: "detection does not decay with depth"
+    location: [README tagline, finding 3, site]
+    artifact: results/reanalysis/dda_v2_corrected_depth.md
+    status: verified
+    note: "holds under both label and corrected depth; depth confounded with attack type"
+  - id: L10
+    claim: "trust-boundary position predicts compromise"
+    location: [former README tagline, finding 2, site hero]
+    artifact: "git show caf7623 -- src/deep_xpia/bench/runner.py (v2 harness ignored tool_metadata)"
+    status: withdrawn
+    note: "rests on DXPIA-008 cases that v2 measured as prompt injections; to be tested in v3 (H1)"
+  - id: L11
+    claim: "300 cases, 8 attack patterns"
+    location: [README badge, site]
+    artifact: deepxpiabench-v2.jsonl
+    value: {cases: 300, attack: 200, clean: 100, per_taxonomy: 25}
+    status: verified
+  - id: L12
+    claim: "v2 dataset reproducible from master generator (seed 42, 200/100)"
+    artifact: deepxpiabench-v2.jsonl
+    status: verified
+    note: "byte-identical to master-branch generator output; current generator differs (depth/topology/domain fixes)"
+  - id: L13
+    claim: "simulated baseline table"
+    location: [README simulated baseline, results/simulated/, results/coverage_matrix.md, site heatmap]
+    command: results/simulated/regenerate.sh
+    artifact: results/simulated/results.md
+    status: simulated
+  - id: L14
+    claim: "intent verification alone: 1% FPR"
+    location: [README finding 1]
+    artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
+    value: {fpr: 0.01, fpr_ci: [0.00, 0.05], clean_n: 100}
+    status: verified
+  - id: L15
+    claim: "verify_tool_metadata blocks all 6 library manifests and 3 scenario manifests, no FP on 3 clean"
+    location: [README library, scenarios/registry_injection/README.md]
+    artifact: [tests/test_intent_verify_metadata.py, tests/test_dxpia008.py]
+    status: verified
+    note: "unit-test level (keyword heuristic), not a live measurement"
+  - id: L16
+    claim: "scenario depths 2/2/3/2 (smuggling/memory/laundering/registry)"
+    location: [scenario READMEs, /api/scenarios]
+    artifact: tests/test_doc_consistency.py
+    status: changed
+    note: "were 3/3/4 under an inconsistent definition; depth := delegation edges"
+
+external:
+  - id: arXiv:2604.07775
+    what: "ACIArena: 1,356 test cases, 6 MAS implementations, 3 objectives; Limitations: 'without exploring robustness-oriented system design'"
+    url: https://arxiv.org/abs/2604.07775
+    accessed: 2026-10-10
+    status: verified
+    note: "'no visualization' claim removed (not stated in paper)"
+  - id: arXiv:2604.02767
+    what: "SentinelAgent: P1-P7 delegation properties; DelegationBench v4 (516 scenarios); adversarial intent paraphrasing limitation (Sec. VII-D, P2 alone 13% TPR)"
+    url: https://arxiv.org/abs/2604.02767
+    accessed: 2026-10-10
+    status: corrected
+    note: "README said 'ships no OSS implementation'; paper states code is open source but links no repository"
+  - id: arXiv:2503.12188
+    what: "Triedman, Jha, Shmatikov: MAS execute arbitrary malicious code; laundering requests through agents changes their presentation (Sec. 4)"
+    url: https://arxiv.org/abs/2503.12188
+    accessed: 2026-10-10
+    status: corrected
+    note: "quote 'intermediate trusted agents actively reformat malicious instructions to strip detection markers' does NOT appear (abstract + full text); replaced with verified Sec. 4 wording"
+  - id: CVE-2025-32711
+    what: "NVD: AI command injection in M365 Copilot, information disclosure (CVSS 9.3 / 7.5)"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2025-32711
+    accessed: 2026-10-10
+    status: verified
+    note: "mapping to DXPIA-006 and 'laundering across agent hops' are interpretation; needs a citable write-up (gate G3/G-incidents)"
+  - id: CVE-2024-38206
+    what: "NVD: SSRF protection bypass in Copilot Studio (CVSS 8.5 / 6.5)"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2024-38206
+    accessed: 2026-10-10
+    status: unverifiable
+    note: "README maps to DXPIA-001 (session smuggling); NVD description (SSRF) does not support that mapping. Editorial decision pending"
+  - id: CVE-2024-43610
+    what: "NVD: exposure of sensitive information in Copilot Studio (CVSS 7.4 / 7.5)"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2024-43610
+    accessed: 2026-10-10
+    status: unverifiable
+    note: "README maps to DXPIA-005 (scope escalation); NVD description does not support that mapping. Editorial decision pending"
+  - id: CVE-2026-21520
+    what: "NVD: exposure of sensitive information in Copilot Studio (CVSS 7.5)"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2026-21520
+    accessed: 2026-10-10
+    status: verified
+    note: "CVSS 7.5 matches; 'prompt injection' type is not in the NVD description (site/taxonomy call it prompt injection)"
+  - id: CVE-2026-35435
+    what: "NVD: improper access control in Azure AI Foundry M365 published agents, elevation of privilege (CVSS 8.6 / 10.0)"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2026-35435
+    accessed: 2026-10-10
+    status: verified
+    note: "taxonomy calls it 'Copilot agent runtime'; NVD names Azure AI Foundry M365 published agents"
+  - id: OWASP-ASI-2026
+    what: "ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain Vulnerabilities, ASI05 Unexpected Code Execution, ASI06 Memory & Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue Agents (published 2025-12-09)"
+    url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+    accessed: 2026-10-10
+    status: unverifiable
+    note: "official PDF is behind a download form; names consistent across 4 secondary sources. Repo labels wrong (ASI07 used for memory poisoning, etc.). Remap pending gate G3"

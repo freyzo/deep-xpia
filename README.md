@@ -1,13 +1,13 @@
 <h1 align="center">deep-xpia</h1>
 
-<p align="center"><strong>the trust boundary predicts compromise, not delegation depth</strong></p>
+<p align="center"><strong>detection does not decay with delegation depth</strong></p>
 <p align="center">🔗 <a href="https://freyzo.github.io/deep-xpia/">https://freyzo.github.io/deep-xpia/</a></p>
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![Benchmark: 300 cases](https://img.shields.io/badge/benchmark-300_cases-orange.svg)](#results)
 [![Taxonomy: 8 DXPIA patterns](https://img.shields.io/badge/taxonomy-8_DXPIA_patterns-red.svg)](#attack-taxonomy)
-[![Tests: 109 passing](https://img.shields.io/badge/tests-124_passing-brightgreen.svg)](tests/)
+[![Tests: 164 passing](https://img.shields.io/badge/tests-164_passing-brightgreen.svg)](tests/)
 [![Live Demo](https://img.shields.io/badge/live_demo-freyzo.github.io-ff4444.svg)](https://freyzo.github.io/deep-xpia/)
 
 ---
@@ -26,21 +26,23 @@ Recent Microsoft 365 Copilot security incidents weren't bad prompts. They were c
 
 One injection. Three agents. Zero alerts.
 
-deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains: 300 cases, 8 attack patterns, 5 defenses. The numbers below are **live-measured** (Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026), not simulated.
+deep-xpia benchmarks multi-hop cross-prompt injection across agent delegation chains: 300 cases, 8 attack patterns, 5 defense primitives. The numbers below are **live-measured** (Anthropic API, Claude Haiku, 300 cases, n=1 per case, API-default temperature, June 2026), not simulated. Brackets are 95% Wilson intervals. In live mode the `all` configuration runs **intent verification + taint**; scope tokens, DLP and context budget are not wired into the live path.
 
 | Config | ASR | TPR | FPR |
 |---|---|---|---|
-| none (baseline) | 0.69 | 0.00 | 0.00 |
-| intent verification | 0.55 | 0.23 | 0.01 |
-| all 5 defenses | 0.12 | 0.77 | 0.31 |
+| none (baseline) | 0.69 [0.62, 0.75] | 0.00 [0.00, 0.02] | 0.00 [0.00, 0.04] |
+| intent verification | 0.55 [0.48, 0.61] | 0.23 [0.18, 0.29] | 0.01 [0.00, 0.05] |
+| all (intent verification + taint) | 0.12 [0.08, 0.17] | 0.77 [0.70, 0.82] | 0.31 [0.23, 0.41] |
+
+Raw runs: [results/raw/v2-live-2026-06/](results/raw/v2-live-2026-06/) (checksums in [results/FROZEN_SHA256SUMS](results/FROZEN_SHA256SUMS)); every number here is traced in [results/CLAIMS.yaml](results/CLAIMS.yaml).
 
 Three things the live data actually shows:
 
-1. **Undefended, 69% of multi-hop injections succeed.** No single defense closes the gap: intent verification alone catches 23% (at a clean 1% false-positive rate). Stacking all five drops attack success to 12%, but the false-positive rate climbs to 31%. There is a real precision/recall wall here, not a free lunch.
+1. **Undefended, 69% of multi-hop injections succeed.** No single defense closes the gap: intent verification alone catches 23% (at a 1% false-positive rate). Combining intent verification with taint drops attack success to 12%, but the false-positive rate climbs to 31%. There is a real precision/recall trade-off here, not a free lunch.
 
-2. **The blind spot is the trust boundary, not depth.** Every depth-1 case is DXPIA-008 registry injection, and it evades *all five defenses stacked* (TPR 0.00 at depth 1). The injection enters at tool-discovery time, upstream of where prompt-stream defenses operate. Position relative to the trust boundary predicts compromise; hop count does not.
+2. **DXPIA-008 cases were the weakest spot, with a measurement caveat.** All 10 depth-1 cases are DXPIA-008, and none was detected by intent verification + taint (TPR 0.00, 95% CI [0.00, 0.28]). Caveat: in the v2 live harness, DXPIA-008 cases injected the payload as a hop-0 *prompt* injection; the poisoned tool manifest was not presented to the agent. The harness now renders the manifest as the agent's tool registry and scans it at registration; registry injection proper has not yet been measured live.
 
-3. **The depth-decay hypothesis did not replicate.** An earlier simulation (see below) modeled detection falling with depth. Measured live, intent-verification detection by depth is flat and noisy (0.20 / 0.19 / 0.25 / 0.38 / 0.18), and with all defenses it *rises* with depth, because deeper buckets are dominated by attack types the defenses handle well. Depth is confounded with attack type, so it is not the causal variable. The clean "drops 60 points" curve was a property of the model, not the world.
+3. **The depth-decay hypothesis did not replicate.** An earlier simulation (see below) modeled detection falling with depth. Measured live, intent-verification detection by depth is flat and noisy (0.20 / 0.19 / 0.25 / 0.38 / 0.18 for published depth labels 1-5), and with intent verification + taint it *rises* with depth, because deeper buckets are dominated by attack types the defenses handle well. Depth is confounded with attack type, so it is not the causal variable. Note: 53 of 200 v2 depth labels disagree with the topology actually built; recomputed with corrected depth the trend is unchanged and there are no depth-5 cases ([results/reanalysis/](results/reanalysis/dda_v2_corrected_depth.md)).
 
 > The headline changed once it met live data. That is the point of running it live. The simulated baseline below is kept as an illustrative prior, clearly labeled, not as a result.
 
@@ -134,9 +136,9 @@ Full taxonomy with literature sources: [taxonomy/taxonomy.yaml](taxonomy/taxonom
 
 ### live (measured)
 
-Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent-verify`, and `all` have real defense primitives wired into the live path; `scope`, `dlp`, and `context-budget` are not yet implemented in live mode and error rather than fake a number. Headline ASR/TPR/FPR are in [the finding](#the-finding); the per-taxonomy breakdown is below, and detection by depth is in [results/depth_analysis.md](results/depth_analysis.md).
+Anthropic API, Claude Haiku, 300 cases, n=1 per case, June 2026. `none`, `intent-verify`, and `all` have real defense primitives wired into the live path (`all` = intent verification + taint); `scope`, `dlp`, and `context-budget` are not yet implemented in live mode and error rather than fake a number. Headline ASR/TPR/FPR are in [the finding](#the-finding); the per-taxonomy breakdown is below, and detection by depth is in [results/depth_analysis.md](results/depth_analysis.md).
 
-Live TPR by taxonomy, all defenses: DXPIA-006 1.00, DXPIA-003 0.92, DXPIA-001 0.84, DXPIA-007 0.84, DXPIA-004 0.76, DXPIA-002 0.72, DXPIA-005 0.64, **DXPIA-008 0.40** (and 0.00 at depth 1). Registry injection is the hardest case even with everything stacked, consistent with it entering upstream of the defenses.
+Live TPR by taxonomy, intent verification + taint (n=25 each): DXPIA-006 1.00, DXPIA-003 0.92, DXPIA-001 0.84, DXPIA-007 0.84, DXPIA-004 0.76, DXPIA-002 0.72, DXPIA-005 0.64, **DXPIA-008 0.40** (and 0.00 at depth 1, n=10). DXPIA-008 was the hardest case, but see the caveat above: v2 measured it as a hop-0 prompt injection.
 
 Reproduce:
 
@@ -164,7 +166,8 @@ Full results and failure analysis: [results/](results/)
 
 ## honest limitations
 
-- **Registry injection (DXPIA-008) is the weak spot, not intent laundering.** Live, DXPIA-008 evaded all defenses stacked (0.40 TPR, 0.00 at depth 1); intent verification actually caught DXPIA-006 relatively well (0.40). The per-case laundering mechanism is real (a stripped instruction can pass a similarity/keyword check), but it was not the population-level blind spot the simulation predicted.
+- **DXPIA-008 was the weak spot in v2, not intent laundering.** Live, intent verification + taint detected DXPIA-008 in 0.40 of cases (0.00 at depth 1), while intent verification alone caught DXPIA-006 relatively well (0.40). v2 measured DXPIA-008 as a hop-0 prompt injection, not via the tool manifest (fixed in the harness, not yet re-measured). The per-case laundering mechanism is real (a stripped instruction can pass a keyword check), but it was not the population-level blind spot the simulation predicted.
+- **Single run per case, default temperature.** v2 used n=1 and the API-default temperature, so per-taxonomy cells (n=25) have wide intervals and exact outputs are not reproducible. The harness now records temperature and model per run.
 - **Taint tracking loses provenance at memory boundaries.** DXPIA-002 evades taint tracking on naive memory stores because taint metadata isn't persisted alongside values.
 - **Scope tokens don't catch intent drift within authorized scope.** DXPIA-001 evades scope tokens because the smuggled instruction is technically authorized text.
 - **DXPIA-008 keyword scanning has limits.** `verify_tool_metadata()` catches obvious injection signals in manifests but misses sophisticated ones that use indirect language. Live mode (LLM-based NLI scan) would improve this.
@@ -192,7 +195,7 @@ deep-xpia/
   taxonomy/
     taxonomy.yaml, owasp_mapping.yaml, aciarena_mapping.yaml
   docs/             built site (served by GitHub Pages)
-  tests/            124 tests
+  tests/            164 tests
 ```
 
 ## contributing

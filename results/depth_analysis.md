@@ -6,7 +6,9 @@ especially for DXPIA-006 (intent laundering).
 
 ## Live result (measured): hypothesis NOT confirmed
 
-Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by depth:
+Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by published depth label
+(53 of 200 labels disagree with the built topology; corrected-depth recomputation with
+95% CIs: [reanalysis/dda_v2_corrected_depth.md](reanalysis/dda_v2_corrected_depth.md)):
 
 | Depth | none | intent-verify | all |
 |-------|------|---------------|-----|
@@ -17,7 +19,7 @@ Claude Haiku, 300 cases, n=1 per case, June 2026. Detection (TPR) by depth:
 | 5 | 0.00 | 0.18 | 1.00 |
 
 Detection does not decrease monotonically with depth. With intent verification
-it is flat and noisy; with all defenses it rises with depth. Depth is confounded
+it is flat and noisy; with all defenses (live `all` = intent verification + taint) it rises with depth. Depth is confounded
 with attack type (depth-1 cases are all DXPIA-008 registry injection, which evades
 prompt-stream defenses). So depth is not the causal variable. Per the protocol
 below, this is reported as a finding that challenges arXiv:2503.12188: hop count

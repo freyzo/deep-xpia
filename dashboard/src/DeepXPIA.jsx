@@ -14,9 +14,9 @@ const C = {
   sans: "'IBM Plex Sans',system-ui,sans-serif",
 };
 
-// live-measured: all 5 defenses, detection (TPR) by injection depth.
-// depth 1 is entirely registry injection (DXPIA-008), which evades the
-// stacked defenses (it enters before the prompt).
+// live-measured (v2): live "all" = intent verification + taint; TPR by
+// published depth label. Depth 1 is entirely DXPIA-008, which the v2 harness
+// injected as a hop-0 prompt (not via the tool manifest).
 const DDA_DATA = [
   { depth: 1, all: 0.0 },
   { depth: 2, all: 72.2 },
@@ -67,7 +67,7 @@ const RADIAL_NODES = [
   { label: "Review",      tag: "DXPIA-006", angle: -30,  blockable: false },
   { label: "Deploy",      tag: "DXPIA-003", angle: 30,   blockable: true  },
   { label: "Memory",      tag: "DXPIA-002", angle: 90,   blockable: false },
-  { label: "Tool Chain",  tag: "DXPIA-003", angle: 150,  blockable: false },
+  { label: "Registry",    tag: "DXPIA-008", angle: 150,  blockable: false },
   { label: "Orchestrate", tag: "DXPIA-004", angle: 210,  blockable: false },
 ];
 
@@ -78,7 +78,7 @@ const RADIAL_STATUS = {
   "2d": { text: "HOP 3 — Deploy Agent blocked. Intent verification detected drift 0.73.", col: "#f59e0b" },
   "2":  { text: "HOP 3 — Deploy Agent executes. Credentials exfiltrated. Zero alerts.", col: "#ef4444" },
   "3":  { text: "Memory Store poisoned. Injection persists across session boundaries.", col: "#ef4444" },
-  "4":  { text: "Tool Chain cascade — payload propagates through 3 downstream tools.", col: "#ef4444" },
+  "4":  { text: "Tool registry poisoned — malicious manifest loaded before any prompt.", col: "#ef4444" },
   "5":  { text: "Orchestrator re-routed. Pipeline topology rewritten by attacker.", col: "#ef4444" },
 };
 
@@ -232,8 +232,8 @@ function RadialAttackMap() {
           const isActive = phase === i;
           const isComp = compromised.has(i);
           const isBlocked = defended && node.blockable && isActive;
-          const lineStroke = isComp ? (isBlocked ? C.yellow : C.red) : isActive ? "#3d1212" : C.border;
-          const nodeStroke = isComp ? (isBlocked ? C.yellow : C.red) : C.border;
+          const lineStroke = isBlocked ? C.yellow : isComp ? C.red : isActive ? "#3d1212" : C.border;
+          const nodeStroke = isBlocked ? C.yellow : isComp ? C.red : C.border;
 
           return (
             <g key={i}>
@@ -262,7 +262,7 @@ function RadialAttackMap() {
 
               {/* Pulse ring on compromised */}
               {isComp && (
-                <circle cx={nx} cy={ny} r={30} fill="none" stroke={isBlocked ? C.yellow : C.red} strokeWidth={1}>
+                <circle cx={nx} cy={ny} r={30} fill="none" stroke={C.red} strokeWidth={1}>
                   <animate attributeName="r" values="30;48;30" dur="2s" repeatCount="indefinite"/>
                   <animate attributeName="opacity" values="0.45;0;0.45" dur="2s" repeatCount="indefinite"/>
                 </circle>
@@ -345,7 +345,7 @@ function DDAChart() {
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 24 }}>
         <span style={{ fontFamily: C.mono, fontSize: 44, fontWeight: 700, color: C.red, lineHeight: 1 }}>0%</span>
-        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>registry injection caught<br />even with all 5 defenses<br />it enters before the prompt</span>
+        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>of depth-1 DXPIA-008 cases caught<br />by intent verification + taint<br />(n=10, 95% CI 0-28%)</span>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={DDA_DATA} margin={{ top: 10, right: 24, bottom: 0, left: 0 }}>
@@ -360,7 +360,7 @@ function DDAChart() {
         </AreaChart>
       </ResponsiveContainer>
       <p style={{ fontFamily: C.mono, fontSize: 11, color: C.faint, marginTop: 10, lineHeight: 1.6 }}>
-        Live-measured (Claude Haiku, 300 cases). Detection does not fall with depth. The gap is at depth 1: registry injection (DXPIA-008) enters at tool-discovery, upstream of every defense, and slips through all 5 stacked.
+        Live-measured (Claude Haiku, 300 cases, n=1/case), by published depth label. Detection does not fall with depth. All 10 depth-1 cases (DXPIA-008) went undetected by intent verification + taint; the v2 harness injected them as hop-0 prompts, not via the tool manifest, so registry injection proper is not yet measured.
       </p>
     </div>
   );
@@ -371,7 +371,7 @@ function CoverageHeatmap() {
   return (
     <div>
       <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.65 }}>
-        TPR per defense per attack pattern. <span style={{ color: C.red, fontFamily: C.mono }}>Simulated prior</span>, shown for the full 7-defense matrix; the live run measured none, intent-verify, and all (see GitHub). Live, the real blind spot is the <span style={{ color: C.red, fontFamily: C.mono }}>008</span> column (registry injection). Hover cells for value.
+        TPR per defense per attack pattern. <span style={{ color: C.red, fontFamily: C.mono }}>Simulated prior</span>, shown for the full 7-defense matrix; the live run measured none, intent-verify, and all (live all = intent verification + taint; see GitHub). Live, the weakest column was <span style={{ color: C.red, fontFamily: C.mono }}>008</span>. Hover cells for value.
       </p>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 3, fontFamily: C.mono, fontSize: 11, width: "100%" }}>
@@ -510,7 +510,6 @@ export default function DeepXPIA() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: C.sans }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         a { color: #60a5fa; text-decoration: none; }
         a:hover { text-decoration: underline; }
@@ -544,7 +543,7 @@ export default function DeepXPIA() {
         </h1>
         <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, maxWidth: 520, marginBottom: 36 }}>
           Single-agent XPIA is studied. The open problem is what happens when the injection crosses delegation boundaries between agents.{" "}
-          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, measured live. The blind spot is the trust boundary, not the prompt.
+          <strong style={{ color: C.text }}>deep-xpia</strong> benchmarks the gap - 300 cases, 8 attack patterns, measured live. Detection did not fall with delegation depth.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a href="https://github.com/freyzo/deep-xpia" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", background: C.red, color: "#fff", borderRadius: 6, fontFamily: C.mono, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
@@ -557,7 +556,7 @@ export default function DeepXPIA() {
 
       <div style={{ maxWidth: 780, margin: "0 auto 48px", padding: "0 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-          {[["300", "cases (live)"], ["8", "DXPIA patterns"], ["69%", "land undefended"], ["12%", "with all defenses"]].map(([n, l]) => (
+          {[["300", "cases (live)"], ["8", "DXPIA patterns"], ["69%", "land undefended"], ["12%", "with intent + taint"]].map(([n, l]) => (
             <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 10px", textAlign: "center" }}>
               <div style={{ fontFamily: C.mono, fontSize: 24, fontWeight: 700, color: C.red }}>{n}</div>
               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{l}</div>
