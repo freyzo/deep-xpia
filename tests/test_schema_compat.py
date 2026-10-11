@@ -8,24 +8,15 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from deep_xpia.bench.schema import (
     AgentSpec,
     AggregateMetrics,
     BenchCase,
     DefenseState,
-    GroundTruth,
     HopMechanism,
     InjectionPosition,
-    InjectionSpec,
-    InjectionTechnique,
-    PayloadType,
     RunResult,
-    Severity,
     TaxonomyID,
-    Topology,
-    TopologySpec,
 )
 
 

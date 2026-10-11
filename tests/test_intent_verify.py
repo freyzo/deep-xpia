@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from deep_xpia.defenses.intent_verify import IntentVerifier, VerificationResult
+from deep_xpia.defenses.intent_verify import IntentVerifier
 
 
 @pytest.fixture

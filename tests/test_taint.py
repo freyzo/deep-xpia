@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from deep_xpia.defenses.taint import TaintTracker, infer_data_classes
 from deep_xpia.defenses.taint_types import DataClass, TrustLevel
 

@@ -9,12 +9,6 @@ Validates:
 
 from __future__ import annotations
 
-import random
-from collections import defaultdict
-
-import numpy as np
-import pytest
-
 from deep_xpia.bench.metrics import compute_metrics
 from deep_xpia.bench.schema import (
     AgentSpec,
