@@ -14,6 +14,7 @@ REPORTS = [
     ("results/reanalysis/v2_property_errata.py", "results/reanalysis/v2_property_errata.md"),
     ("results/reanalysis/audit_v2_outcomes.py", "results/reanalysis/v2_outcome_validity.md"),
     ("results/reanalysis/reanalyze_v2_depth.py", "results/reanalysis/dda_v2_corrected_depth.md"),
+    ("results/reanalysis/rescore_v2.py", "results/reanalysis/v2_rescored.md"),
 ]
 
 

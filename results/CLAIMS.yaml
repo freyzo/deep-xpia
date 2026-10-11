@@ -14,20 +14,22 @@ internal:
     artifact: results/raw/v2-live-2026-06/live_full_none.jsonl
     command: "deepxpia bench report none=results/raw/v2-live-2026-06/live_full_none.jsonl --dataset deepxpiabench-v2.jsonl"
     value: {asr: 0.69, asr_ci: [0.62, 0.75], tpr: 0.00, tpr_ci: [0.00, 0.02], fpr: 0.00, fpr_ci: [0.00, 0.04]}
-    status: verified
+    status: changed
+    note: "ASR here is the v2 keyword judge (5 words in the final output), not attack success: it fires on 53% of payload-free clean outputs (results/reanalysis/v2_outcome_validity.md). Provisional re-scored ASR on the 156 delivered cases: 0/156 (results/reanalysis/v2_rescored.md, pending human validation). TPR/FPR are detector fire rates and stand"
   - id: L2
     claim: "intent verification ASR 0.55, TPR 0.23, FPR 0.01"
     location: [README the finding]
     artifact: results/raw/v2-live-2026-06/live_full_intent.jsonl
     value: {asr: 0.55, asr_ci: [0.48, 0.61], tpr: 0.23, tpr_ci: [0.18, 0.29], fpr: 0.01, fpr_ci: [0.00, 0.05]}
-    status: verified
+    status: changed
+    note: "ASR here is the v2 keyword judge (5 words in the final output), not attack success: it fires on 53% of payload-free clean outputs (results/reanalysis/v2_outcome_validity.md). Provisional re-scored ASR on the 156 delivered cases: 0/156 (results/reanalysis/v2_rescored.md, pending human validation). TPR/FPR are detector fire rates and stand"
   - id: L3
     claim: "all: ASR 0.12, TPR 0.77, FPR 0.31"
     location: [README the finding, site stats]
     artifact: results/raw/v2-live-2026-06/live_full_all.jsonl
     value: {asr: 0.12, asr_ci: [0.08, 0.17], tpr: 0.77, tpr_ci: [0.70, 0.82], fpr: 0.31, fpr_ci: [0.23, 0.41]}
     status: changed
-    note: "numbers verified; label corrected. Live 'all' = intent verification + taint (runner.py use_intent/use_taint), not 'all 5 defenses stacked' as previously stated"
+    note: "numbers reproduce; label corrected: live 'all' = intent verification + taint (runner.py use_intent/use_taint), not 'all 5 defenses stacked'. ASR here is the v2 keyword judge (5 words in the final output), not attack success: it fires on 53% of payload-free clean outputs (results/reanalysis/v2_outcome_validity.md). Provisional re-scored ASR on the 156 delivered cases: 1/156 (results/reanalysis/v2_rescored.md, pending human validation). TPR/FPR are detector fire rates and stand"
   - id: L4
     claim: "per-taxonomy TPR, intent verification + taint: 006 1.00, 003 0.92, 001 0.84, 007 0.84, 004 0.76, 002 0.72, 005 0.64, 008 0.40"
     location: [README results]
