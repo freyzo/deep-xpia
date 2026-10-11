@@ -61,3 +61,17 @@ def test_live_values_recompute(entry: dict) -> None:
                 assert [round(x, 2) for x in have] == want, (entry["id"], key)
             else:
                 assert round(have, 2) == want, (entry["id"], key)
+
+
+def test_internal_artifacts_exist() -> None:
+    """Every artifact an internal claim points to is a file in the repo."""
+    for entry in LEDGER["internal"]:
+        artifacts = entry.get("artifact", [])
+        for a in [artifacts] if isinstance(artifacts, str) else artifacts:
+            if " " not in a and "/" in a or a.endswith((".jsonl", ".md", ".py", ".yaml")):
+                assert (ROOT / a).exists(), (entry["id"], a)
+
+
+def test_internal_ids_unique_and_sequential() -> None:
+    ids = [int(e["id"][1:]) for e in LEDGER["internal"]]
+    assert ids == list(range(1, len(ids) + 1))
